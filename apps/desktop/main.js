@@ -63,22 +63,46 @@ const iconPath = path.join(buildDir, iconName);
 
   mainWindow = win;
 
-  if (isDev) {
-    win.loadURL('http://localhost:3000');
-    win.webContents.openDevTools();
-  } else {
-    const appUrl = process.env.APP_URL || 'https://vibeminer.ai';
-    win.loadURL(appUrl);
+  const appUrl = isDev ? 'http://localhost:3000' : (process.env.APP_URL || 'https://vibeminer.ai');
+  let hasShown = false;
+
+  function showWhenReady() {
+    if (!hasShown && !win.isDestroyed()) {
+      hasShown = true;
+      win.show();
+    }
   }
 
-  win.webContents.on('did-fail-load', (_, errorCode, errorDescription, validatedUrl) => {
-    if (!win.isDestroyed() && !isDev && errorCode !== -3) {
+  // Show window only when main frame has finished loading (avoids blank black screen)
+  win.webContents.on('did-finish-load', () => {
+    if (!win.isDestroyed()) showWhenReady();
+  });
+
+  win.webContents.on('did-fail-load', (_, errorCode, errorDescription, validatedUrl, isMainFrame) => {
+    if (!win.isDestroyed() && isMainFrame && errorCode !== -3) {
+      // -3 = ERR_ABORTED (e.g. navigation superseded). Show error page in both dev and prod
       win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(FAILED_LOAD_HTML));
     }
   });
 
-  win.once('ready-to-show', () => win.show());
-  win.on('closed', () => { mainWindow = null; });
+  // If load hangs, show window and error after timeout so user isn't stuck
+  const loadTimeout = setTimeout(() => {
+    if (!hasShown && !win.isDestroyed()) {
+      win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(
+        FAILED_LOAD_HTML.replace('Can&rsquo;t connect', 'Taking too long')
+          .replace('Check your internet connection, then try again.', 'The page is taking too long to load. Check your connection and try again.')
+      ));
+    }
+  }, 15000);
+
+  win.webContents.once('did-finish-load', () => clearTimeout(loadTimeout));
+
+  if (isDev) {
+    win.webContents.openDevTools();
+  }
+  win.loadURL(appUrl);
+
+  win.on('closed', () => { mainWindow = null; clearTimeout(loadTimeout); });
 }
 
 app.whenReady().then(() => {
