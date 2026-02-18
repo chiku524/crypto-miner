@@ -3,7 +3,8 @@ const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
 
-const isDev = process.env.NODE_ENV !== 'production' || !app.isPackaged;
+// Packaged app = production (no dev tools, load vibeminer.ai). Unpackaged = dev (localhost + dev tools).
+const isDev = !app.isPackaged;
 
 const SETTINGS_FILE = 'settings.json';
 function getSettingsPath() {
