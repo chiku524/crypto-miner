@@ -63,7 +63,7 @@ export async function getLatestDesktopDownloadUrls(): Promise<DesktopDownloadUrl
         'X-GitHub-Api-Version': '2022-11-28',
         ...(token && { Authorization: `Bearer ${token}` }),
       },
-      next: { revalidate: 300 },
+      next: { revalidate: 0 },
     }
   );
 

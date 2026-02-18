@@ -16,7 +16,11 @@ export async function GET() {
         { status: 502 }
       );
     }
-    return NextResponse.json(urls);
+    return NextResponse.json(urls, {
+      headers: {
+        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=120',
+      },
+    });
   } catch {
     return NextResponse.json(
       { error: 'Failed to fetch latest release' },
