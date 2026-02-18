@@ -1,7 +1,11 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   transpilePackages: ['@crypto-miner/shared'],
-  output: 'export',
+  async redirects() {
+    return [
+      { source: '/favicon.ico', destination: '/icon', permanent: true },
+    ];
+  },
 };
 
 module.exports = nextConfig;

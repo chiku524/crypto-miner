@@ -1,9 +1,37 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { useAuth } from '@/contexts/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export function Nav() {
+  const { user, profile, accountType, loading, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (menuRef.current && !menuRef.current.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
+
+  async function handleSignOut() {
+    setOpen(false);
+    await logout();
+    router.push('/');
+    router.refresh();
+  }
+
+  const displayLabel =
+    accountType === 'network' && profile?.network_name
+      ? profile.network_name
+      : profile?.display_name || user?.email?.split('@')[0] || 'Account';
+
   return (
     <motion.header
       initial={{ y: -20, opacity: 0 }}
@@ -11,32 +39,88 @@ export function Nav() {
       transition={{ duration: 0.5 }}
       className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-surface-950/80 backdrop-blur-xl"
     >
-      <nav className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+      <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
           <span className="text-2xl">◇</span>
           <span className="bg-gradient-to-r from-accent-cyan to-emerald-400 bg-clip-text text-transparent">
-            Vibe Mine
+            VibeMiner
           </span>
         </Link>
-        <div className="flex items-center gap-6">
-          <Link
-            href="/#networks"
-            className="text-sm font-medium text-gray-400 transition hover:text-white"
-          >
+        <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+          <Link href="/#networks" className="text-sm font-medium text-gray-400 transition hover:text-white">
             Networks
           </Link>
-          <Link
-            href="/#how-it-works"
-            className="text-sm font-medium text-gray-400 transition hover:text-white"
-          >
+          <Link href="/#how-it-works" className="text-sm font-medium text-gray-400 transition hover:text-white">
             How it works
           </Link>
-          <Link
-            href="/dashboard"
-            className="rounded-lg bg-accent-cyan/20 px-4 py-2 text-sm font-medium text-accent-cyan transition hover:bg-accent-cyan/30"
-          >
-            Start mining
+          <Link href="/download" className="text-sm font-medium text-gray-400 transition hover:text-white">
+            Download
           </Link>
+          <Link href="/fees" className="text-sm font-medium text-gray-400 transition hover:text-white">
+            Fees
+          </Link>
+          {!loading && (
+            user ? (
+              <div className="relative" ref={menuRef}>
+                <button
+                  type="button"
+                  onClick={() => setOpen((o) => !o)}
+                  className="flex items-center gap-2 rounded-lg border border-white/10 bg-surface-850/80 px-3 py-2 text-sm font-medium text-white transition hover:bg-surface-850"
+                >
+                  <span className="max-w-[120px] truncate">{displayLabel}</span>
+                  <span className="rounded bg-white/10 px-1.5 py-0.5 text-xs text-gray-400">
+                    {accountType === 'network' ? 'Network' : 'Miner'}
+                  </span>
+                  <span className="text-gray-500">▾</span>
+                </button>
+                {open && (
+                  <motion.div
+                    initial={{ opacity: 0, y: -4 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="absolute right-0 mt-1 w-48 rounded-xl border border-white/10 bg-surface-900 py-1 shadow-xl"
+                  >
+                    {accountType === 'user' && (
+                      <Link
+                        href="/dashboard"
+                        onClick={() => setOpen(false)}
+                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white"
+                      >
+                        Miner dashboard
+                      </Link>
+                    )}
+                    {accountType === 'network' && (
+                      <Link
+                        href="/dashboard/network"
+                        onClick={() => setOpen(false)}
+                        className="block px-4 py-2 text-sm text-gray-300 hover:bg-white/5 hover:text-white"
+                      >
+                        Network dashboard
+                      </Link>
+                    )}
+                    <button
+                      type="button"
+                      onClick={handleSignOut}
+                      className="w-full px-4 py-2 text-left text-sm text-gray-400 hover:bg-white/5 hover:text-red-400"
+                    >
+                      Sign out
+                    </button>
+                  </motion.div>
+                )}
+              </div>
+            ) : (
+              <>
+                <Link href="/login?returnTo=/dashboard" className="text-sm font-medium text-gray-400 transition hover:text-white">
+                  Sign in
+                </Link>
+                <Link href="/register?returnTo=/dashboard" className="rounded-lg bg-accent-cyan/20 px-4 py-2 text-sm font-medium text-accent-cyan transition hover:bg-accent-cyan/30">
+                  Register
+                </Link>
+                <Link href="/dashboard" className="rounded-lg border border-white/10 px-4 py-2 text-sm font-medium text-gray-300 transition hover:bg-white/5">
+                  Start mining
+                </Link>
+              </>
+            )
+          )}
         </div>
       </nav>
     </motion.header>

@@ -12,7 +12,7 @@ export function Hero() {
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6 }}
-        className="relative z-10 max-w-3xl text-center"
+        className="relative max-w-3xl text-center"
       >
         <motion.p
           initial={{ opacity: 0 }}
@@ -61,10 +61,22 @@ export function Hero() {
             />
           </Link>
           <Link
+            href="/download"
+            className="rounded-xl border border-white/10 px-6 py-3 font-medium text-gray-300 transition hover:border-white/20 hover:bg-white/5"
+          >
+            Download desktop
+          </Link>
+          <Link
             href="/#networks"
             className="rounded-xl border border-white/10 px-6 py-3 font-medium text-gray-300 transition hover:border-white/20 hover:bg-white/5"
           >
             View networks
+          </Link>
+          <Link
+            href="/register"
+            className="rounded-xl border border-accent-amber/30 px-6 py-3 font-medium text-accent-amber/90 transition hover:bg-accent-amber/10"
+          >
+            Register your blockchain
           </Link>
         </motion.div>
       </motion.div>

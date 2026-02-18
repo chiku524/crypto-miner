@@ -8,6 +8,7 @@ import { NetworksShowcase } from '@/components/NetworksShowcase';
 import { HowItWorks } from '@/components/HowItWorks';
 import { CTA } from '@/components/CTA';
 import { Footer } from '@/components/Footer';
+import { BackToTop } from '@/components/BackToTop';
 
 export default function Home() {
   return (
@@ -18,6 +19,7 @@ export default function Home() {
       <HowItWorks />
       <CTA />
       <Footer />
+      <BackToTop />
     </main>
   );
 }

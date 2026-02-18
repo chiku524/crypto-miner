@@ -9,7 +9,7 @@ function createWindow() {
     height: 800,
     minWidth: 900,
     minHeight: 600,
-    title: 'Vibe Mine',
+    title: 'VibeMiner',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -23,7 +23,9 @@ function createWindow() {
     win.loadURL('http://localhost:3000');
     win.webContents.openDevTools();
   } else {
-    win.loadFile(path.join(__dirname, 'out/index.html'));
+    // Production: load from deployed URL (Cloudflare Pages or your domain)
+    const appUrl = process.env.APP_URL || 'https://vibeminer.ai';
+    win.loadURL(appUrl);
   }
 
   win.once('ready-to-show', () => win.show());

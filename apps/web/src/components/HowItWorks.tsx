@@ -16,7 +16,7 @@ const steps = [
   {
     step: '3',
     title: 'Earn & withdraw',
-    description: 'Track hashrate and estimated earnings. Withdraw when you hit the minimum payout.',
+    description: 'Track hashrate and estimated earnings. Withdraw when you hit the minimum payout. A 1% service fee applies to withdrawals—see Fees for details.',
   },
 ];
 

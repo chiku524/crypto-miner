@@ -1,4 +1,4 @@
-# Vibe Mine
+# VibeMiner
 
 A modern, seamless crypto mining experience for blockchain networks that need hashrate—**no terminal required**. Available as a **web app** and **desktop app** (Windows & macOS).
 
@@ -27,6 +27,15 @@ npm run dev
 
 Open [http://localhost:3000](http://localhost:3000).
 
+### Auth: user and network accounts
+
+Sign-in and registration use **Cloudflare D1** (database) and **KV** (sessions). Two account types:
+
+- **Miner (user)** — Personal account to mine and track hashrate; access the miner dashboard.
+- **Network** — For blockchains that want to request mining service; access the network dashboard and get listed.
+
+**Setup:** See [`docs/CLOUDFLARE_SETUP.md`](docs/CLOUDFLARE_SETUP.md) for creating D1, KV, and R2. Auth requires these bindings; use `npm run preview` (from `apps/web`) to test auth locally. For **Vercel** deployment (monorepo), see [`docs/VERCEL.md`](docs/VERCEL.md).
+
 ### Desktop app (Electron)
 
 ```bash
@@ -37,9 +46,12 @@ npm run desktop
 This starts the web app and opens it in an Electron window. For a production build:
 
 ```bash
-npm run build
 cd apps/desktop && npm run build
 ```
+
+The desktop app loads the deployed web URL in production (default: `https://vibeminer.ai`). Set `APP_URL` when building to use your custom domain.
+
+**Releasing installers:** Push a version tag (e.g. `v1.0.0`) to trigger [`.github/workflows/release-desktop.yml`](.github/workflows/release-desktop.yml). The workflow builds Windows, macOS, and Linux installers and creates a [GitHub Release](https://github.com/chiku524/crypto-miner/releases) with the artifacts. Then set `NEXT_PUBLIC_DESKTOP_DOWNLOAD_WIN`, `_MAC`, and `_LINUX` in your web app env so the download page works. See **[`docs/TRUST_AND_NEXT_STEPS.md`](docs/TRUST_AND_NEXT_STEPS.md)** for the exact Vercel steps and trust/signing options; [`docs/DESKTOP_APP.md`](docs/DESKTOP_APP.md) for signing/notarization and marketplaces.
 
 ## Project structure
 
@@ -78,6 +90,7 @@ The current UI uses **simulated** hashrate and earnings for demo purposes. To co
 ## Tech stack
 
 - **Web**: Next.js 14 (App Router), React 18, Tailwind CSS, Framer Motion, TypeScript
+- **Backend**: Cloudflare Workers (OpenNext), D1, KV, R2
 - **Desktop**: Electron
 - **Shared**: `@crypto-miner/shared` (network config + types)
 

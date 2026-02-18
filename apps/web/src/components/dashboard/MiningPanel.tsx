@@ -1,8 +1,11 @@
 'use client';
 
+import { useState } from 'react';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import type { MiningSession as SessionType } from '@crypto-miner/shared';
 import type { BlockchainNetwork } from '@crypto-miner/shared';
+import { FEE_CONFIG } from '@crypto-miner/shared';
 
 interface MiningPanelProps {
   session: SessionType;
@@ -18,7 +21,17 @@ function formatDuration(ms: number) {
 }
 
 export function MiningPanel({ session, network, onStop }: MiningPanelProps) {
+  const [confirming, setConfirming] = useState(false);
   const elapsed = session.startedAt ? Date.now() - session.startedAt : 0;
+
+  function handleStopClick() {
+    if (confirming) {
+      onStop();
+      setConfirming(false);
+    } else {
+      setConfirming(true);
+    }
+  }
 
   return (
     <motion.div
@@ -51,6 +64,10 @@ export function MiningPanel({ session, network, onStop }: MiningPanelProps) {
       </div>
 
       <div className="grid gap-6 p-6 sm:grid-cols-2">
+        <div className="rounded-xl bg-surface-850/80 p-4 sm:col-span-2">
+          <p className="text-xs font-medium uppercase tracking-wider text-gray-500">Session stats (simulated)</p>
+          <p className="mt-1 text-sm text-gray-400">In production, total earned and history would appear here.</p>
+        </div>
         <div className="rounded-xl bg-surface-850/80 p-4">
           <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
             Hash rate
@@ -85,14 +102,46 @@ export function MiningPanel({ session, network, onStop }: MiningPanelProps) {
 
       <div className="border-t border-white/5 px-6 py-4">
         <p className="mb-3 text-xs text-gray-500">
-          In production, this panel would show live data from your miner or pool. Minimum payout: {network.minPayout ?? '—'}
+          In production, this panel would show live data from your miner or pool. Min. payout: {network.minPayout ?? '—'}
         </p>
-        <button
-          onClick={onStop}
-          className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/20"
-        >
-          Stop mining
-        </button>
+        <p className="mb-3 text-xs text-gray-500">
+          Withdrawal fee: <strong className="text-gray-400">{FEE_CONFIG.WITHDRAWAL.percent}%</strong>.{' '}
+          <Link href="/fees" className="text-accent-cyan hover:underline">See fees</Link>
+        </p>
+        <div className="mb-3 rounded-lg border border-white/5 bg-surface-850/50 px-3 py-2">
+          <label htmlFor="payout-address" className="block text-xs text-gray-500">Payout address (optional)</label>
+          <input
+            id="payout-address"
+            type="text"
+            placeholder="Wallet address for payouts"
+            className="mt-1 w-full bg-transparent text-sm text-white placeholder-gray-500 focus:outline-none"
+            aria-label="Payout wallet address"
+          />
+        </div>
+        {confirming ? (
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm text-gray-400">Stop mining session?</span>
+            <button
+              onClick={handleStopClick}
+              className="rounded-xl border border-red-500/50 bg-red-500/20 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/30"
+            >
+              Yes, stop
+            </button>
+            <button
+              onClick={() => setConfirming(false)}
+              className="rounded-xl border border-white/10 px-4 py-2 text-sm font-medium text-gray-400 transition hover:bg-white/5 hover:text-white"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={handleStopClick}
+            className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm font-medium text-red-400 transition hover:bg-red-500/20"
+          >
+            Stop mining
+          </button>
+        )}
       </div>
     </motion.div>
   );

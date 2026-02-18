@@ -1,6 +1,6 @@
 # Blockchain network integration contract
 
-This document defines the **exact** payload and rules required for a new blockchain network to be added to Vibe Mine. Following it ensures 100% compatibility and no runtime malfunctions.
+This document defines the **exact** payload and rules required for a new blockchain network to be added to VibeMiner. Following it ensures 100% compatibility and no runtime malfunctions.
 
 ## Environments
 

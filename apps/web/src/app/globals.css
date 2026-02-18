@@ -11,6 +11,12 @@ html {
   scroll-behavior: smooth;
 }
 
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
 body {
   font-feature-settings: 'rlig' 1, 'calt' 1;
 }
@@ -32,4 +38,16 @@ body {
 /* Glow effect for active mining */
 .mining-glow {
   box-shadow: 0 0 40px rgba(34, 211, 238, 0.15), 0 0 80px rgba(34, 211, 238, 0.05);
+}
+
+/* Onboarding modal: force page content behind the modal overlay so the
+   Hero title/subheader get blurred. Framer Motion transforms create
+   stacking contexts that can paint above the portal. */
+body.onboarding-modal-open {
+  overflow: hidden;
+}
+body.onboarding-modal-open .onboarding-page-wrapper {
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
 }

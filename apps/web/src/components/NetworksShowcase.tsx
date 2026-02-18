@@ -1,9 +1,21 @@
 'use client';
 
+import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { getMainnetNetworks, getDevnetNetworks } from '@crypto-miner/shared';
 import type { BlockchainNetwork } from '@crypto-miner/shared';
+
+function filterNetworks(networks: BlockchainNetwork[], query: string): BlockchainNetwork[] {
+  if (!query.trim()) return networks;
+  const q = query.toLowerCase();
+  return networks.filter(
+    (n) =>
+      n.name.toLowerCase().includes(q) ||
+      n.symbol.toLowerCase().includes(q) ||
+      n.algorithm.toLowerCase().includes(q)
+  );
+}
 
 const container = {
   hidden: { opacity: 0 },
@@ -99,7 +111,24 @@ function NetworkCard({ network }: { network: BlockchainNetwork }) {
   );
 }
 
-function NetworkGrid({ networks, title, subtitle, id }: { networks: BlockchainNetwork[]; title: string; subtitle: string; id: string }) {
+function NetworkGrid({
+  networks,
+  title,
+  subtitle,
+  id,
+  searchQuery,
+  onClearSearch,
+}: {
+  networks: BlockchainNetwork[];
+  title: string;
+  subtitle: string;
+  id: string;
+  searchQuery?: string;
+  onClearSearch?: () => void;
+}) {
+  const isEmpty = networks.length === 0;
+  const hasSearch = !!searchQuery?.trim();
+
   return (
     <div id={id} className="scroll-mt-24">
       <motion.div
@@ -111,24 +140,46 @@ function NetworkGrid({ networks, title, subtitle, id }: { networks: BlockchainNe
         <h3 className="font-display text-2xl font-bold tracking-tight">{title}</h3>
         <p className="mt-1 text-gray-400">{subtitle}</p>
       </motion.div>
-      <motion.div
-        variants={container}
-        initial="hidden"
-        whileInView="show"
-        viewport={{ once: true, margin: '-40px' }}
-        className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
-      >
-        {networks.map((network) => (
-          <NetworkCard key={`${network.environment}-${network.id}`} network={network} />
-        ))}
-      </motion.div>
+      {isEmpty && hasSearch ? (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="rounded-xl border border-white/5 bg-surface-900/30 py-12 text-center"
+        >
+          <p className="text-sm font-medium text-gray-400">No {title.toLowerCase()} networks match &quot;{searchQuery}&quot;</p>
+          {onClearSearch && (
+            <button
+              type="button"
+              onClick={onClearSearch}
+              className="mt-4 rounded-lg border border-white/10 px-4 py-2 text-sm text-gray-400 transition hover:border-white/20 hover:text-white"
+            >
+              Clear search
+            </button>
+          )}
+        </motion.div>
+      ) : (
+        <motion.div
+          variants={container}
+          initial="hidden"
+          whileInView="show"
+          viewport={{ once: true, margin: '-40px' }}
+          className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"
+        >
+          {networks.map((network) => (
+            <NetworkCard key={`${network.environment}-${network.id}`} network={network} />
+          ))}
+        </motion.div>
+      )}
     </div>
   );
 }
 
 export function NetworksShowcase() {
-  const mainnetNetworks = getMainnetNetworks();
-  const devnetNetworks = getDevnetNetworks();
+  const [searchQuery, setSearchQuery] = useState('');
+  const mainnetNetworks = useMemo(() => getMainnetNetworks(), []);
+  const devnetNetworks = useMemo(() => getDevnetNetworks(), []);
+  const filteredMainnet = useMemo(() => filterNetworks(mainnetNetworks, searchQuery), [mainnetNetworks, searchQuery]);
+  const filteredDevnet = useMemo(() => filterNetworks(devnetNetworks, searchQuery), [devnetNetworks, searchQuery]);
 
   return (
     <section id="networks" className="relative border-t border-white/5 py-24">
@@ -137,7 +188,7 @@ export function NetworksShowcase() {
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
-          className="mb-16 text-center"
+          className="mb-8 text-center"
         >
           <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
             Networks requesting our service
@@ -146,20 +197,39 @@ export function NetworksShowcase() {
             Mainnet for production mining and sync; devnet for testing. Pick one and start.
           </p>
         </motion.div>
+        <motion.div
+          initial={{ opacity: 0 }}
+          whileInView={{ opacity: 1 }}
+          viewport={{ once: true }}
+          className="mb-12"
+        >
+          <input
+            type="search"
+            placeholder="Search networks..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            className="mx-auto block w-full max-w-md rounded-xl border border-white/10 bg-surface-900/50 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none focus:ring-1 focus:ring-accent-cyan/50"
+            aria-label="Search networks"
+          />
+        </motion.div>
 
         <NetworkGrid
           id="mainnet"
           title="Mainnet"
           subtitle="Production networks. Miners and chains stay in sync here. Real rewards."
-          networks={mainnetNetworks}
+          networks={filteredMainnet}
+          searchQuery={searchQuery}
+          onClearSearch={() => setSearchQuery('')}
         />
 
-        <div className="mt-16 pt-16 border-t border-white/5">
+        <div className="mt-16 border-t border-white/5 pt-16">
           <NetworkGrid
             id="devnet"
             title="Devnet"
             subtitle="Test networks for integration and validation. No real value—for developers and networks testing our service."
-            networks={devnetNetworks}
+            networks={filteredDevnet}
+            searchQuery={searchQuery}
+            onClearSearch={() => setSearchQuery('')}
           />
         </div>
       </div>

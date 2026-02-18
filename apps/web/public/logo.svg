@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 200 48" fill="none" aria-hidden="true">
+  <defs>
+    <linearGradient id="vibeminer-gradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22d3ee" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+    <linearGradient id="diamond-gradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#22d3ee" />
+      <stop offset="100%" stop-color="#34d399" />
+    </linearGradient>
+  </defs>
+  <!-- Diamond icon -->
+  <path
+    d="M12 4 L24 16 L12 28 L0 16 Z"
+    fill="url(#diamond-gradient)"
+    stroke="url(#diamond-gradient)"
+    stroke-width="1"
+    stroke-linejoin="round"
+  />
+  <!-- VibeMiner text -->
+  <text x="36" y="32" font-family="system-ui, -apple-system, sans-serif" font-size="24" font-weight="600" fill="url(#vibeminer-gradient)">VibeMiner</text>
+</svg>

@@ -1,0 +1,2 @@
+-- Supabase schema (legacy - kept for reference if you switch back)
+-- The project now uses Cloudflare D1. See apps/web/d1/schema.sql

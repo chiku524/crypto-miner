@@ -1,0 +1,146 @@
+# Build VibeMiner desktop app for Windows, macOS, and Linux on tag push (v*),
+# then create a GitHub Release with the installers attached.
+#
+# Optional: Add secrets for code signing (Windows) and notarization (macOS)
+# for a more trustworthy install. See docs/DESKTOP_APP.md.
+
+name: Release desktop app
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Set version from tag
+        run: node -e "const fs=require('fs'); const p=require('./apps/desktop/package.json'); p.version=require('path').basename(process.env.GITHUB_REF,'').replace(/^v/,''); fs.writeFileSync('./apps/desktop/package.json', JSON.stringify(p,null,2));"
+        env:
+          GITHUB_REF: ${{ github.ref }}
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Windows installer
+        run: npx electron-builder --win
+        working-directory: apps/desktop
+        env:
+          # Optional: Windows code signing (set in repo secrets)
+          # CSC_LINK: ${{ secrets.WIN_CODE_SIGNING_CERT_BASE64 }}
+          # CSC_KEY_PASSWORD: ${{ secrets.WIN_CODE_SIGNING_PASSWORD }}
+          # CSC_SUBJECT_NAME: 'Your Name'
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-windows
+          path: apps/desktop/dist/*.exe
+
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version from tag
+        run: node -e "const fs=require('fs'); const p=require('./apps/desktop/package.json'); p.version=require('path').basename(process.env.GITHUB_REF,'').replace(/^v/,''); fs.writeFileSync('./apps/desktop/package.json', JSON.stringify(p,null,2));"
+        env:
+          GITHUB_REF: ${{ github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build macOS installer
+        run: npx electron-builder --mac
+        working-directory: apps/desktop
+        env:
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-macos
+          path: apps/desktop/dist/*.dmg
+
+  build-linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set version from tag
+        run: node -e "const fs=require('fs'); const p=require('./apps/desktop/package.json'); p.version=require('path').basename(process.env.GITHUB_REF,'').replace(/^v/,''); fs.writeFileSync('./apps/desktop/package.json', JSON.stringify(p,null,2));"
+        env:
+          GITHUB_REF: ${{ github.ref }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build Linux AppImage
+        run: npx electron-builder --linux
+        working-directory: apps/desktop
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Upload Linux artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: desktop-linux
+          path: apps/desktop/dist/*.AppImage
+
+  release:
+    needs: [build-windows, build-macos, build-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          pattern: desktop-*
+          path: artifacts
+          merge-multiple: true
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: VibeMiner desktop ${{ github.ref_name }}
+          body: |
+            ## Desktop installers
+            Download the installer for your platform below. Same app as the web—runs in its own window. Built and published by [nico.builds](https://nico.builds).
+            - **Windows**: run the `.exe` installer (publisher: nico.builds)
+            - **macOS**: open the `.dmg` and drag VibeMiner to Applications
+            - **Linux**: make the `.AppImage` executable and run it
+          files: artifacts/*
+          draft: false
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
