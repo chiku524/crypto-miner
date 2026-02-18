@@ -112,6 +112,10 @@ export function DownloadPageContent({ initialDownloads, githubReleasesUrl }: Dow
                 })}
               </div>
               <p className="mt-6 text-sm text-gray-500">
+                Installers are loaded from GitHub Releases (newest version that has assets).{' '}
+                <a href={githubReleasesUrl} target="_blank" rel="noopener noreferrer" className="text-accent-cyan underline">View all releases</a>.
+              </p>
+              <p className="mt-3 text-sm text-gray-500">
                 After installing, open VibeMiner and sign in with the same account you use on the
                 web. Your dashboard and mining settings stay in sync.
               </p>
