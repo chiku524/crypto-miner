@@ -6,7 +6,7 @@ import { motion } from 'framer-motion';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { DESKTOP_DOWNLOADS, detectPlatform, type Platform } from '@/lib/downloads';
+import { detectPlatform, type Platform } from '@/lib/downloads';
 import type { DesktopDownloadUrls } from '@/lib/desktop-downloads-api';
 
 const PLATFORM_LABELS: Record<Platform, string> = {
@@ -26,9 +26,11 @@ type DownloadUrls = { win: string | null; mac: string | null; linux: string | nu
 interface DownloadPageContentProps {
   /** URLs from server (latest GitHub release) so first paint is correct */
   initialDownloads: DownloadUrls | null;
+  /** Link when no installers are available (e.g. API failed) */
+  githubReleasesUrl: string;
 }
 
-export function DownloadPageContent({ initialDownloads }: DownloadPageContentProps) {
+export function DownloadPageContent({ initialDownloads, githubReleasesUrl }: DownloadPageContentProps) {
   const [suggested, setSuggested] = useState<Platform | null>(null);
   const [latest, setLatest] = useState<DownloadUrls | null>(initialDownloads);
 
@@ -43,10 +45,11 @@ export function DownloadPageContent({ initialDownloads }: DownloadPageContentPro
       .catch(() => {});
   }, []);
 
+  // Use only API data (server or client fetch). Never use build-time env so we never show stale URLs.
   const downloads: DownloadUrls = {
-    win: latest?.win ?? DESKTOP_DOWNLOADS.win ?? null,
-    mac: latest?.mac ?? DESKTOP_DOWNLOADS.mac ?? null,
-    linux: latest?.linux ?? DESKTOP_DOWNLOADS.linux ?? null,
+    win: latest?.win ?? null,
+    mac: latest?.mac ?? null,
+    linux: latest?.linux ?? null,
   };
 
   const hasAnyDownload = downloads.win || downloads.mac || downloads.linux;
@@ -123,7 +126,16 @@ export function DownloadPageContent({ initialDownloads }: DownloadPageContentPro
                 <Link href="/dashboard" className="text-accent-cyan underline">
                   the web app
                 </Link>{' '}
-                in your browser. Check back later or build from source—see the project README.
+                in your browser, or get the latest installers from{' '}
+                <a
+                  href={githubReleasesUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-accent-cyan underline"
+                >
+                  GitHub Releases
+                </a>
+                . Check back later or build from source—see the project README.
               </p>
             </div>
           )}
