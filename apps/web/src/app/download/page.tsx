@@ -20,14 +20,30 @@ const PLATFORM_ICONS: Record<Platform, string> = {
   linux: '🐧',
 };
 
+type DownloadUrls = { win: string | null; mac: string | null; linux: string | null };
+
 export default function DownloadPage() {
   const [suggested, setSuggested] = useState<Platform | null>(null);
+  const [latest, setLatest] = useState<DownloadUrls | null>(null);
 
   useEffect(() => {
     setSuggested(detectPlatform());
   }, []);
 
-  const hasAnyDownload = DESKTOP_DOWNLOADS.win || DESKTOP_DOWNLOADS.mac || DESKTOP_DOWNLOADS.linux;
+  useEffect(() => {
+    fetch('/api/desktop-downloads')
+      .then((r) => (r.ok ? r.json() : null))
+      .then((data: DownloadUrls | null) => data && setLatest(data))
+      .catch(() => {});
+  }, []);
+
+  const downloads: DownloadUrls = {
+    win: latest?.win ?? DESKTOP_DOWNLOADS.win ?? null,
+    mac: latest?.mac ?? DESKTOP_DOWNLOADS.mac ?? null,
+    linux: latest?.linux ?? DESKTOP_DOWNLOADS.linux ?? null,
+  };
+
+  const hasAnyDownload = downloads.win || downloads.mac || downloads.linux;
 
   return (
     <main className="min-h-screen bg-surface-950 bg-grid">
@@ -49,14 +65,14 @@ export default function DownloadPage() {
 
           {hasAnyDownload ? (
             <div className="mt-10 space-y-4">
-              {suggested && DESKTOP_DOWNLOADS[suggested] && (
+              {suggested && downloads[suggested] && (
                 <p className="text-sm text-accent-cyan">
                   We detected {PLATFORM_LABELS[suggested]} — your download is below.
                 </p>
               )}
               <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 {(['win', 'mac', 'linux'] as const).map((platform) => {
-                  const url = DESKTOP_DOWNLOADS[platform];
+                  const url = downloads[platform];
                   if (!url) return null;
                   const isSuggested = suggested === platform;
                   return (

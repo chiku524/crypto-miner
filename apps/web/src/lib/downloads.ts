@@ -1,12 +1,11 @@
 /**
- * Desktop app download URLs. Set in .env or deployment:
+ * Desktop app download URLs. The /download page prefers URLs from /api/desktop-downloads
+ * (latest GitHub release) so the site always points to the newest version without
+ * updating env vars. These env vars are used as fallback (before API responds or if it fails):
  *
  * - NEXT_PUBLIC_DESKTOP_DOWNLOAD_WIN  — Windows installer (e.g. NSIS .exe)
  * - NEXT_PUBLIC_DESKTOP_DOWNLOAD_MAC  — macOS installer (.dmg)
  * - NEXT_PUBLIC_DESKTOP_DOWNLOAD_LINUX — Linux AppImage
- *
- * Example (GitHub Releases): upload artifacts and set full URLs, e.g.
- * https://github.com/your-org/crypto-miner/releases/download/v1.0.0/VibeMiner-Setup-1.0.0.exe
  */
 export const DESKTOP_DOWNLOADS = {
   win: process.env.NEXT_PUBLIC_DESKTOP_DOWNLOAD_WIN ?? null,
