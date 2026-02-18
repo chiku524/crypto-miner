@@ -26,11 +26,37 @@ export type DesktopDownloadUrls = {
   linux: string | null;
 };
 
+/** Parse tag (e.g. v1.0.8) to [major, minor, patch] for comparison. */
+function parseTagVersion(tagName: string): number[] {
+  const m = tagName.replace(/^v/i, '').match(/^(\d+)\.(\d+)\.(\d+)/);
+  if (!m) return [0, 0, 0];
+  return [parseInt(m[1], 10), parseInt(m[2], 10), parseInt(m[3], 10)];
+}
+
+/** Compare two tag versions; returns positive if a > b. */
+function compareTagVersions(a: string, b: string): number {
+  const va = parseTagVersion(a);
+  const vb = parseTagVersion(b);
+  for (let i = 0; i < 3; i++) {
+    if (va[i] !== vb[i]) return va[i] - vb[i];
+  }
+  return 0;
+}
+
+interface GhRelease {
+  tag_name: string;
+  assets?: Array<{ name: string; browser_download_url: string }>;
+}
+
+/**
+ * Fetches releases and returns download URLs from the release with the **highest semantic version**
+ * (e.g. v1.0.8), not GitHub's "latest" which is by publish date and can be an older version.
+ */
 export async function getLatestDesktopDownloadUrls(): Promise<DesktopDownloadUrls> {
   const repo = getRepoFromEnv();
   const token = process.env.GITHUB_TOKEN ?? process.env.github_token;
   const res = await fetch(
-    `https://api.github.com/repos/${repo}/releases/latest`,
+    `https://api.github.com/repos/${repo}/releases?per_page=30`,
     {
       headers: {
         Accept: 'application/vnd.github+json',
@@ -45,12 +71,22 @@ export async function getLatestDesktopDownloadUrls(): Promise<DesktopDownloadUrl
     return { win: null, mac: null, linux: null };
   }
 
-  const release = (await res.json()) as { assets?: Array<{ name: string; browser_download_url: string }> };
-  const assets = release?.assets ?? [];
+  const releases = (await res.json()) as GhRelease[];
+  if (!Array.isArray(releases) || releases.length === 0) {
+    return { win: null, mac: null, linux: null };
+  }
 
-  const win = assets.find((a) => a.name.endsWith('.exe'))?.browser_download_url ?? null;
-  const mac = assets.find((a) => a.name.endsWith('.dmg'))?.browser_download_url ?? null;
-  const linux = assets.find((a) => a.name.endsWith('.AppImage'))?.browser_download_url ?? null;
+  const sorted = [...releases].sort((a, b) => compareTagVersions(b.tag_name, a.tag_name));
 
-  return { win, mac, linux };
+  for (const release of sorted) {
+    const assets = release?.assets ?? [];
+    const win = assets.find((a) => a.name.endsWith('.exe'))?.browser_download_url ?? null;
+    const mac = assets.find((a) => a.name.endsWith('.dmg'))?.browser_download_url ?? null;
+    const linux = assets.find((a) => a.name.endsWith('.AppImage'))?.browser_download_url ?? null;
+    if (win || mac || linux) {
+      return { win, mac, linux };
+    }
+  }
+
+  return { win: null, mac: null, linux: null };
 }
