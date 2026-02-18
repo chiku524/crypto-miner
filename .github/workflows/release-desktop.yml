@@ -54,8 +54,9 @@ jobs:
         run: npm run generate-icons
         working-directory: apps/desktop
 
+      # Set repo variable WIN_CODE_SIGNING_ENABLED = true when secrets are configured (secrets can't be used in if)
       - name: Prepare Windows code signing cert
-        if: ${{ secrets.WIN_CODE_SIGNING_CERT_BASE64 != '' }}
+        if: ${{ vars.WIN_CODE_SIGNING_ENABLED == 'true' }}
         run: |
           $certPath = "$env:GITHUB_WORKSPACE\apps\desktop\cert.pfx"
           [IO.File]::WriteAllBytes($certPath, [Convert]::FromBase64String($env:WIN_CODE_SIGNING_CERT_BASE64))
