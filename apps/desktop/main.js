@@ -33,13 +33,21 @@ function scheduleAutoUpdateChecks() {
   updateCheckInterval = setInterval(() => autoUpdater.checkForUpdatesAndNotify().catch(() => {}), 4 * 60 * 60 * 1000);
 }
 
+const FAILED_LOAD_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VibeMiner</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0c0e12;color:#e5e7eb;font-family:system-ui,sans-serif;text-align:center;padding:1.5rem;}h1{font-size:1.25rem;margin-bottom:0.5rem;}p{color:#9ca3af;margin-bottom:1.5rem;}button{background:#22d3ee;color:#0c0e12;border:none;padding:0.75rem 1.5rem;border-radius:0.75rem;font-weight:600;cursor:pointer;}button:hover{filter:brightness(1.1);}</style></head><body><div><h1>Can&rsquo;t connect</h1><p>Check your internet connection, then try again.</p><button type="button" id="retry">Retry</button></div><script>document.getElementById("retry").onclick=function(){if(typeof window.electronAPI!=="undefined"&&window.electronAPI.reload){window.electronAPI.reload();}else{location.reload();}}</script></body></html>`;
+
+let mainWindow = null;
+
 function createWindow() {
+  const buildDir = path.join(__dirname, 'build');
+const iconName = process.platform === 'win32' ? 'icon.ico' : process.platform === 'darwin' ? 'icon.icns' : 'icon.png';
+const iconPath = path.join(buildDir, iconName);
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
     minWidth: 900,
     minHeight: 600,
     title: 'VibeMiner',
+    icon: fs.existsSync(iconPath) ? iconPath : undefined,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -49,16 +57,27 @@ function createWindow() {
     show: false,
   });
 
+  // No menu bar — app feels like a normal desktop app, not a browser
+  win.setMenu(null);
+
+  mainWindow = win;
+
   if (isDev) {
     win.loadURL('http://localhost:3000');
     win.webContents.openDevTools();
   } else {
-    // Production: load from deployed URL (Cloudflare Pages or your domain)
     const appUrl = process.env.APP_URL || 'https://vibeminer.ai';
     win.loadURL(appUrl);
   }
 
+  win.webContents.on('did-fail-load', (_, errorCode, errorDescription, validatedUrl) => {
+    if (!win.isDestroyed() && !isDev && errorCode !== -3) {
+      win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(FAILED_LOAD_HTML));
+    }
+  });
+
   win.once('ready-to-show', () => win.show());
+  win.on('closed', () => { mainWindow = null; });
 }
 
 app.whenReady().then(() => {
@@ -73,6 +92,7 @@ app.whenReady().then(() => {
     return s.autoUpdate;
   });
   ipcMain.handle('getAppVersion', () => app.getVersion());
+  ipcMain.handle('reload', () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.reload(); });
 
   createWindow();
 });

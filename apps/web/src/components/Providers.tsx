@@ -3,13 +3,19 @@
 import { AuthProvider } from '@/contexts/AuthContext';
 import { ToastProvider } from '@/contexts/ToastContext';
 import { OnboardingProvider } from '@/contexts/OnboardingContext';
+import { PageTransition } from '@/components/PageTransition';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
-    <AuthProvider>
-      <ToastProvider>
-        <OnboardingProvider>{children}</OnboardingProvider>
-      </ToastProvider>
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <ToastProvider>
+          <OnboardingProvider>
+            <PageTransition>{children}</PageTransition>
+          </OnboardingProvider>
+        </ToastProvider>
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

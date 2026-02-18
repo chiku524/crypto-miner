@@ -10,22 +10,26 @@
     "dev:web": "npm run dev -w crypto-miner-web",
     "build": "electron-builder",
     "build:web": "npm run build -w crypto-miner-web",
-    "start": "electron ."
+    "start": "electron .",
+    "generate-icons": "node scripts/generate-icons.js"
   },
   "dependencies": {
     "electron-updater": "^6.3.9"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "concurrently": "^8.2.2",
     "electron": "28.0.0",
     "electron-builder": "^24.9.1",
+    "electron-icon-builder": "^2.0.1",
     "wait-on": "^7.2.0"
   },
   "build": {
     "appId": "com.nicobuilds.vibeminer",
     "productName": "VibeMiner",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     },
     "files": [
       "main.js",
@@ -50,7 +54,8 @@
       "target": [
         "nsis"
       ],
-      "publisherName": "nico.builds"
+      "publisherName": "nico.builds",
+      "signAndEditExecutable": false
     },
     "linux": {
       "target": [

@@ -21,3 +21,6 @@ nul
 
 # Electron
 apps/desktop/out/
+apps/desktop/build/
+*.pfx
+apps/desktop/cert.pfx

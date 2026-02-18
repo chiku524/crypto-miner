@@ -5,9 +5,11 @@ import { useEffect, useState } from 'react';
 declare global {
   interface Window {
     electronAPI?: {
+      isDesktop?: boolean;
       getAutoUpdateEnabled: () => Promise<boolean>;
       setAutoUpdateEnabled: (enabled: boolean) => Promise<boolean>;
       getAppVersion: () => Promise<string>;
+      reload?: () => Promise<void>;
     };
   }
 }

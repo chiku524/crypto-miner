@@ -1,7 +1,7 @@
 'use client';
 
 import { useSearchParams, useRouter } from 'next/navigation';
-import { useMemo, useState, useCallback, useEffect } from 'react';
+import { useMemo, useState, useCallback, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import {
@@ -18,6 +18,8 @@ import { useToast } from '@/contexts/ToastContext';
 import { NetworkModal } from '@/components/ui/NetworkModal';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { DesktopAppSettings } from '@/components/DesktopAppSettings';
+import { NetworkListSkeleton, DashboardSkeleton } from '@/components/ui/Skeleton';
+import { useDebouncedValue } from '@/hooks/useDebouncedValue';
 
 const ENV_OPTIONS: { value: NetworkEnvironment; label: string }[] = [
   { value: 'mainnet', label: 'Mainnet' },
@@ -65,7 +67,10 @@ export function DashboardContent() {
     [router, searchParams]
   );
   const [searchQuery, setSearchQuery] = useState('');
+  const debouncedSearch = useDebouncedValue(searchQuery, 200);
+  const [startingId, setStartingId] = useState<string | null>(null);
   const [modalNetwork, setModalNetwork] = useState<BlockchainNetwork | null>(null);
+  const modalTriggerRef = useRef<HTMLButtonElement | null>(null);
   const preselectedId = searchParams.get('network');
 
   useEffect(() => {
@@ -79,8 +84,8 @@ export function DashboardContent() {
   }, [selectedEnv]);
 
   const filteredNetworks = useMemo(
-    () => filterNetworks(networksForEnv, searchQuery),
-    [networksForEnv, searchQuery]
+    () => filterNetworks(networksForEnv, debouncedSearch),
+    [networksForEnv, debouncedSearch]
   );
 
   const preselected = useMemo(() => {
@@ -97,12 +102,17 @@ export function DashboardContent() {
   const handleStart = useCallback(
     (network: BlockchainNetwork) => {
       if (network.status === 'live') {
+        setStartingId(network.id);
         startMining(network.id, network.environment);
         addToast(`Mining ${network.name} started`);
       }
     },
     [startMining, addToast]
   );
+
+  useEffect(() => {
+    if (session) setStartingId(null);
+  }, [session]);
 
   const handleStop = useCallback(() => {
     addToast('Mining stopped');
@@ -132,8 +142,40 @@ export function DashboardContent() {
   if (!authLoading && accountType === 'network') {
     return (
       <main className="min-h-screen bg-surface-950 flex items-center justify-center">
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-cyan border-t-transparent" />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-accent-cyan border-t-transparent" aria-hidden />
       </main>
+    );
+  }
+
+  if (authLoading) {
+    return (
+      <>
+        <header className="sticky top-0 z-10 border-b border-white/5 bg-surface-950/90 backdrop-blur-xl">
+          <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
+            <Link href="/" className="flex items-center gap-2 font-display text-lg font-semibold">
+              <span className="text-xl" aria-hidden="true">◇</span>
+              <span className="bg-gradient-to-r from-accent-cyan to-emerald-400 bg-clip-text text-transparent">VibeMiner</span>
+            </Link>
+            <Link href="/" className="text-sm text-gray-400 transition hover:text-white">← Back home</Link>
+          </div>
+        </header>
+        <div className="mx-auto max-w-6xl px-4 py-8 sm:px-6">
+          <Breadcrumbs crumbs={[{ label: 'Home', href: '/' }, { label: 'Miner dashboard' }]} />
+          <div className="mb-8 mt-4 h-16 w-64 rounded-lg bg-white/5 animate-pulse" aria-hidden />
+          <div className="grid gap-8 lg:grid-cols-3">
+            <div className="lg:col-span-1 space-y-4">
+              <div className="h-12 rounded-xl bg-white/5 animate-pulse" />
+              <div className="h-10 rounded-xl bg-white/5 animate-pulse" />
+              <NetworkListSkeleton />
+            </div>
+            <div className="lg:col-span-2">
+              <div className="rounded-2xl border border-white/5 bg-surface-900/30 p-8">
+                <DashboardSkeleton />
+              </div>
+            </div>
+          </div>
+        </div>
+      </>
     );
   }
 
@@ -142,7 +184,7 @@ export function DashboardContent() {
       <header className="sticky top-0 z-10 border-b border-white/5 bg-surface-950/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
           <Link href="/" className="flex items-center gap-2 font-display text-lg font-semibold">
-            <span className="text-xl">◇</span>
+            <span className="text-xl" aria-hidden="true">◇</span>
             <span className="bg-gradient-to-r from-accent-cyan to-emerald-400 bg-clip-text text-transparent">
               VibeMiner
             </span>
@@ -170,20 +212,29 @@ export function DashboardContent() {
 
         <div className="grid gap-8 lg:grid-cols-3">
           <div className="lg:col-span-1">
-            <div className="mb-4 flex gap-2 rounded-xl bg-surface-900/50 p-1">
+            <div className="relative mb-4 flex rounded-xl bg-surface-900/50 p-1">
               {ENV_OPTIONS.map((opt) => (
                 <button
                   key={opt.value}
                   onClick={() => setSelectedEnvWithUrl(opt.value)}
-                  className={`flex-1 rounded-lg px-3 py-2 text-sm font-medium transition ${
-                    selectedEnv === opt.value
-                      ? 'bg-white/10 text-white'
-                      : 'text-gray-400 hover:text-white'
-                  }`}
+                  className="relative z-10 flex flex-1 rounded-lg px-3 py-2 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-accent-cyan/50 focus:ring-offset-2 focus:ring-offset-surface-950"
+                  style={{ color: selectedEnv === opt.value ? undefined : 'rgb(156 163 175)' }}
                 >
-                  {opt.label}
+                  <span className={selectedEnv === opt.value ? 'text-white' : 'text-gray-400 hover:text-white'}>
+                    {opt.label}
+                  </span>
                 </button>
               ))}
+              <motion.div
+                layoutId="env-pill"
+                className="absolute top-1 bottom-1 rounded-lg bg-white/10"
+                initial={false}
+                transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                style={{
+                  left: selectedEnv === 'mainnet' ? 4 : 'calc(50% + 2px)',
+                  width: 'calc(50% - 6px)',
+                }}
+              />
             </div>
             <input
               type="search"
@@ -195,52 +246,84 @@ export function DashboardContent() {
             />
             <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-gray-500">
               {selectedEnv === 'mainnet' ? 'Mainnet' : 'Devnet'} networks
+              <span className="ml-1.5 font-normal normal-case text-gray-600">
+                ({filteredNetworks.length})
+              </span>
             </h2>
-            <ul className="space-y-2">
+            <motion.ul
+              className="space-y-2"
+              initial="hidden"
+              animate="visible"
+              variants={{
+                visible: { transition: { staggerChildren: 0.04, delayChildren: 0.02 } },
+                hidden: {},
+              }}
+            >
               {filteredNetworks.map((network) => {
                 const isLive = network.status === 'live';
                 const isActive =
                   session?.networkId === network.id && session?.environment === network.environment;
+                const isStarting = startingId === network.id;
                 return (
                   <motion.li
                     key={`${network.environment}-${network.id}`}
-                    initial={{ opacity: 0, x: -8 }}
-                    animate={{ opacity: 1, x: 0 }}
+                    variants={{
+                      visible: { opacity: 1, x: 0 },
+                      hidden: { opacity: 0, x: -12 },
+                    }}
+                    transition={{ duration: 0.25, ease: 'easeOut' }}
                     className="list-none"
                   >
                     <div className="flex items-stretch gap-1 rounded-xl border border-transparent">
-                      <button
+                      <motion.button
                         onClick={() => handleStart(network)}
-                        disabled={!isLive || !!isActive}
-                        className={`flex flex-1 items-center gap-3 rounded-l-xl border px-4 py-3 text-left transition ${
+                        disabled={!isLive || !!isActive || !!isStarting}
+                        whileHover={isLive && !isActive && !isStarting ? { scale: 1.01 } : undefined}
+                        whileTap={isLive && !isActive && !isStarting ? { scale: 0.99 } : undefined}
+                        transition={{ duration: 0.15 }}
+                        className={`flex flex-1 items-center gap-3 rounded-l-xl border px-4 py-3 text-left transition-colors ${
                           isActive
                             ? 'border-accent-cyan/50 bg-accent-cyan/10'
-                            : isLive
-                              ? 'border-white/10 hover:border-white/20 hover:bg-white/5'
-                              : 'cursor-not-allowed border-white/5 bg-white/5 opacity-60'
+                            : isStarting
+                              ? 'border-accent-cyan/30 bg-accent-cyan/5'
+                              : isLive
+                                ? 'border-white/10 hover:border-white/20 hover:bg-white/5'
+                                : 'cursor-not-allowed border-white/5 bg-white/5 opacity-60'
                         }`}
                       >
-                        <span className="text-xl">{network.icon}</span>
+                        <span className="text-xl" aria-hidden="true">{network.icon}</span>
                         <div className="min-w-0 flex-1">
-                          <p className="font-medium text-white">{network.name}</p>
-                          <p className="text-xs text-gray-500">
-                            {network.symbol} · {network.algorithm}
-                          </p>
+                          {isStarting ? (
+                            <p className="font-medium text-accent-cyan flex items-center gap-2">
+                              <span className="h-3 w-3 animate-spin rounded-full border-2 border-accent-cyan border-t-transparent" aria-hidden />
+                              Starting…
+                            </p>
+                          ) : (
+                            <>
+                              <p className="font-medium text-white">{network.name}</p>
+                              <p className="text-xs text-gray-500">
+                                {network.symbol} · {network.algorithm}
+                              </p>
+                            </>
+                          )}
                         </div>
-                        {network.environment === 'devnet' && (
+                        {!isStarting && network.environment === 'devnet' && (
                           <span className="rounded bg-violet-500/20 px-1.5 py-0.5 text-xs text-violet-300">
                             Test
                           </span>
                         )}
-                        {network.status === 'coming-soon' && (
+                        {!isStarting && network.status === 'coming-soon' && (
                           <span className="text-xs text-gray-500">Soon</span>
                         )}
                         {isActive && (
-                          <span className="h-2 w-2 rounded-full bg-accent-emerald animate-pulse" />
+                          <span className="h-2 w-2 rounded-full bg-accent-emerald animate-pulse" aria-hidden />
                         )}
-                      </button>
+                      </motion.button>
                       <button
-                        onClick={() => setModalNetwork(network)}
+                        onClick={(e) => {
+                          modalTriggerRef.current = e.currentTarget as HTMLButtonElement;
+                          setModalNetwork(network);
+                        }}
                         className="rounded-r-xl border border-white/10 bg-surface-850/80 px-3 py-2 text-xs text-gray-400 transition hover:border-white/20 hover:bg-white/5 hover:text-white"
                         title="Learn more"
                       >
@@ -265,7 +348,7 @@ export function DashboardContent() {
                   </button>
                 </div>
               )}
-            </ul>
+            </motion.ul>
           </div>
 
           <div className="lg:col-span-2">
@@ -280,12 +363,13 @@ export function DashboardContent() {
               ) : (
                 <motion.div
                   key="idle"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  exit={{ opacity: 0 }}
+                  initial={{ opacity: 0, scale: 0.98 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  exit={{ opacity: 0, scale: 0.98 }}
+                  transition={{ duration: 0.25, ease: 'easeOut' }}
                   className="flex flex-col items-center justify-center rounded-2xl border border-white/5 bg-surface-900/30 py-20 text-center"
                 >
-                  <span className="text-5xl opacity-50">◇</span>
+                  <span className="text-5xl opacity-50" aria-hidden="true">◇</span>
                   <p className="mt-4 font-medium text-gray-400">No active mining session</p>
                   <p className="mt-2 max-w-sm text-sm text-gray-500">
                     Select Mainnet or Devnet above, then pick a network to start mining. Or press <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">S</kbd> to quick-start the first available network.
@@ -319,7 +403,15 @@ export function DashboardContent() {
         </div>
       </div>
 
-      <NetworkModal network={modalNetwork} onClose={() => setModalNetwork(null)} />
+      <NetworkModal
+        network={modalNetwork}
+        onClose={() => {
+          setModalNetwork(null);
+          requestAnimationFrame(() => {
+            modalTriggerRef.current?.focus();
+          });
+        }}
+      />
     </>
   );
 }

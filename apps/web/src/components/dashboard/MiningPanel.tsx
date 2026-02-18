@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import type { MiningSession as SessionType } from '@crypto-miner/shared';
@@ -22,7 +22,16 @@ function formatDuration(ms: number) {
 
 export function MiningPanel({ session, network, onStop }: MiningPanelProps) {
   const [confirming, setConfirming] = useState(false);
-  const elapsed = session.startedAt ? Date.now() - session.startedAt : 0;
+  const [elapsed, setElapsed] = useState(() =>
+    session.startedAt ? Date.now() - session.startedAt : 0
+  );
+
+  useEffect(() => {
+    if (!session.startedAt) return;
+    const tick = () => setElapsed(Date.now() - session.startedAt);
+    const id = setInterval(tick, 1000);
+    return () => clearInterval(id);
+  }, [session.startedAt]);
 
   function handleStopClick() {
     if (confirming) {
@@ -35,9 +44,10 @@ export function MiningPanel({ session, network, onStop }: MiningPanelProps) {
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0 }}
+      initial={{ opacity: 0, y: 16, scale: 0.98 }}
+      animate={{ opacity: 1, y: 0, scale: 1 }}
+      exit={{ opacity: 0, y: -8, scale: 0.98 }}
+      transition={{ type: 'spring', stiffness: 400, damping: 30 }}
       className="overflow-hidden rounded-2xl border border-accent-cyan/20 bg-surface-900/50 mining-glow"
     >
       <div className="border-b border-white/5 bg-surface-850/80 px-6 py-4">

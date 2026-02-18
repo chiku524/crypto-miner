@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useMemo } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
 import { getMainnetNetworks, getDevnetNetworks } from '@crypto-miner/shared';
 import type { BlockchainNetwork } from '@crypto-miner/shared';
@@ -118,6 +118,7 @@ function NetworkGrid({
   id,
   searchQuery,
   onClearSearch,
+  reducedMotion,
 }: {
   networks: BlockchainNetwork[];
   title: string;
@@ -125,16 +126,19 @@ function NetworkGrid({
   id: string;
   searchQuery?: string;
   onClearSearch?: () => void;
+  reducedMotion?: boolean;
 }) {
   const isEmpty = networks.length === 0;
   const hasSearch = !!searchQuery?.trim();
+  const reduced = reducedMotion ?? false;
 
   return (
     <div id={id} className="scroll-mt-24">
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
+        initial={reduced ? false : { opacity: 0, y: 20 }}
         whileInView={{ opacity: 1, y: 0 }}
-        viewport={{ once: true }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: reduced ? 0 : 0.35 }}
         className="mb-8"
       >
         <h3 className="font-display text-2xl font-bold tracking-tight">{title}</h3>
@@ -175,6 +179,7 @@ function NetworkGrid({
 }
 
 export function NetworksShowcase() {
+  const reduced = useReducedMotion() ?? false;
   const [searchQuery, setSearchQuery] = useState('');
   const mainnetNetworks = useMemo(() => getMainnetNetworks(), []);
   const devnetNetworks = useMemo(() => getDevnetNetworks(), []);
@@ -185,9 +190,10 @@ export function NetworksShowcase() {
     <section id="networks" className="relative border-t border-white/5 py-24">
       <div className="mx-auto max-w-6xl px-4 sm:px-6">
         <motion.div
-          initial={{ opacity: 0, y: 20 }}
+          initial={reduced ? false : { opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true }}
+          viewport={{ once: true, margin: '-60px' }}
+          transition={{ duration: reduced ? 0 : 0.4 }}
           className="mb-8 text-center"
         >
           <h2 className="font-display text-3xl font-bold tracking-tight sm:text-4xl">
@@ -198,9 +204,10 @@ export function NetworksShowcase() {
           </p>
         </motion.div>
         <motion.div
-          initial={{ opacity: 0 }}
+          initial={reduced ? false : { opacity: 0 }}
           whileInView={{ opacity: 1 }}
           viewport={{ once: true }}
+          transition={{ duration: reduced ? 0 : 0.3 }}
           className="mb-12"
         >
           <input
@@ -220,6 +227,7 @@ export function NetworksShowcase() {
           networks={filteredMainnet}
           searchQuery={searchQuery}
           onClearSearch={() => setSearchQuery('')}
+          reducedMotion={reduced}
         />
 
         <div className="mt-16 border-t border-white/5 pt-16">
@@ -230,6 +238,7 @@ export function NetworksShowcase() {
             networks={filteredDevnet}
             searchQuery={searchQuery}
             onClearSearch={() => setSearchQuery('')}
+            reducedMotion={reduced}
           />
         </div>
       </div>

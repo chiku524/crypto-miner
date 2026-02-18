@@ -41,12 +41,15 @@ Unsigned installers work but can trigger “unknown publisher” (Windows) or �
 
 ### Windows (code signing)
 
-1. Obtain a **code signing certificate** (e.g. DigiCert, Sectigo) and export it to a `.pfx` file.
-2. In the repo: **Settings → Secrets and variables → Actions**, add:
-   - `WIN_CODE_SIGNING_CERT_BASE64`: base64-encoded `.pfx` (e.g. `base64 -i cert.pfx | pbcopy` on macOS, paste as secret).
-   - `WIN_CODE_SIGNING_PASSWORD`: password for the `.pfx`.
-3. In `.github/workflows/release-desktop.yml`, uncomment the `CSC_LINK`, `CSC_KEY_PASSWORD`, and (if needed) `CSC_SUBJECT_NAME` env vars in the **Build Windows installer** step.
-4. In `apps/desktop/package.json`, under `build.win`, set `"signAndEditExecutable": true` so electron-builder signs the exe (electron-builder uses `CSC_LINK` / `CSC_KEY_PASSWORD` when set in the workflow).
+To remove **“Unknown publisher”** and the SmartScreen warning, sign the Windows installer with a code signing certificate. The workflow is already set up: add two GitHub secrets and the next release will produce a signed `.exe`.
+
+**Full step-by-step:** See **[`docs/WINDOWS_CODE_SIGNING.md`](WINDOWS_CODE_SIGNING.md)** for:
+
+- Why the warning appears and what EV vs OV certificates do
+- Where to buy a cert (DigiCert, Sectigo, SSL.com, etc.)
+- How to export to `.pfx`, base64-encode it, and add **WIN_CODE_SIGNING_CERT_BASE64** and **WIN_CODE_SIGNING_PASSWORD** as repo secrets
+
+After the secrets are set, the release workflow decodes the cert and signs the Windows build automatically. `signAndEditExecutable` is already enabled in `apps/desktop/package.json`.
 
 ### macOS (notarization)
 

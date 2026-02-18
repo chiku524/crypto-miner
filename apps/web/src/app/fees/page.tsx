@@ -1,10 +1,11 @@
 import { FEE_CONFIG, formatWithdrawalFee } from '@crypto-miner/shared';
 import Link from 'next/link';
 import { Nav } from '@/components/Nav';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 
 export const metadata = {
-  title: 'Fees & transparency — VibeMiner',
-  description: 'Network listing fees and miner withdrawal fees. Transparent pricing.',
+  title: 'Fees & transparency',
+  description: 'Network listing fees and miner withdrawal fees. Transparent pricing. VibeMiner by nico.builds.',
 };
 
 export default function FeesPage() {
@@ -12,7 +13,7 @@ export default function FeesPage() {
     <main className="min-h-screen bg-surface-950 bg-grid">
       <Nav />
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-        <Link href="/" className="text-sm text-gray-500 transition hover:text-white">← Back</Link>
+        <Breadcrumbs crumbs={[{ label: 'Home', href: '/' }, { label: 'Fees & transparency' }]} />
         <h1 className="mt-6 font-display text-3xl font-bold tracking-tight text-white">
           Fees & transparency
         </h1>

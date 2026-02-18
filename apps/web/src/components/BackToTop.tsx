@@ -3,14 +3,13 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const SCROLL_THRESHOLD = 400;
-
 export function BackToTop() {
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
     function onScroll() {
-      setVisible(window.scrollY > SCROLL_THRESHOLD);
+      const threshold = typeof window !== 'undefined' ? window.innerHeight : 400;
+      setVisible(window.scrollY > threshold);
     }
     onScroll();
     window.addEventListener('scroll', onScroll, { passive: true });
@@ -32,7 +31,7 @@ export function BackToTop() {
           className="fixed bottom-6 right-6 z-40 flex h-10 w-10 items-center justify-center rounded-full border border-white/10 bg-surface-900/90 text-gray-400 shadow-lg backdrop-blur-sm transition hover:border-accent-cyan/30 hover:bg-surface-850 hover:text-accent-cyan"
           aria-label="Back to top"
         >
-          ↑
+          <span aria-hidden="true">↑</span>
         </motion.button>
       )}
     </AnimatePresence>

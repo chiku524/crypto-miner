@@ -85,9 +85,13 @@ export default function RootLayout({
     },
   };
 
+  const origin = new URL(site.baseUrl).origin;
+
   return (
     <html lang="en" className="dark">
       <head>
+        <link rel="preconnect" href={origin} />
+        <link rel="dns-prefetch" href={origin} />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

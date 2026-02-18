@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Nav } from '@/components/Nav';
 import { Footer } from '@/components/Footer';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { DESKTOP_DOWNLOADS, detectPlatform, type Platform } from '@/lib/downloads';
 
 const PLATFORM_LABELS: Record<Platform, string> = {
@@ -32,9 +33,7 @@ export default function DownloadPage() {
     <main className="min-h-screen bg-surface-950 bg-grid">
       <Nav />
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-        <Link href="/" className="text-sm text-gray-500 transition hover:text-white">
-          ← Back
-        </Link>
+        <Breadcrumbs crumbs={[{ label: 'Home', href: '/' }, { label: 'Download' }]} />
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -72,7 +71,7 @@ export default function DownloadPage() {
                           : 'border-white/10 bg-surface-900/50 text-gray-300 hover:border-white/20 hover:bg-white/5'
                       }`}
                     >
-                      <span className="text-2xl">{PLATFORM_ICONS[platform]}</span>
+                      <span className="text-2xl" aria-hidden="true">{PLATFORM_ICONS[platform]}</span>
                       <span>
                         {PLATFORM_LABELS[platform]}
                         {isSuggested && (

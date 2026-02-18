@@ -1,7 +1,9 @@
 'use client';
 
 import { Suspense } from 'react';
+import Link from 'next/link';
 import { RegisterForm } from './RegisterForm';
+import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 
 function RegisterFallback() {
   return (
@@ -18,10 +20,15 @@ function RegisterFallback() {
 
 export default function RegisterPage() {
   return (
-    <main className="flex min-h-screen items-center justify-center bg-surface-950 bg-grid px-4 py-24">
-      <Suspense fallback={<RegisterFallback />}>
-        <RegisterForm />
-      </Suspense>
+    <main className="flex min-h-screen flex-col items-center bg-surface-950 bg-grid px-4 py-24">
+      <div className="w-full max-w-md">
+        <Breadcrumbs crumbs={[{ label: 'Home', href: '/' }, { label: 'Register' }]} />
+      </div>
+      <div className="mt-8 flex w-full max-w-md flex-1 justify-center">
+        <Suspense fallback={<RegisterFallback />}>
+          <RegisterForm />
+        </Suspense>
+      </div>
     </main>
   );
 }

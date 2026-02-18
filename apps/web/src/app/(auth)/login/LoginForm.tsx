@@ -17,14 +17,28 @@ export function LoginForm() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string }>({});
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = useMemo(() => getReturnTo(searchParams), [searchParams]);
 
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  function validate(): boolean {
+    const next: { email?: string; password?: string } = {};
+    if (!email.trim()) next.email = 'Email is required.';
+    else if (!emailRe.test(email)) next.email = 'Please enter a valid email address.';
+    if (!password) next.password = 'Password is required.';
+    setFieldErrors(next);
+    return Object.keys(next).length === 0;
+  }
+
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
+    setFieldErrors({});
+    if (!validate()) return;
     setLoading(true);
     const result = await login(email, password);
     setLoading(false);
@@ -43,35 +57,45 @@ export function LoginForm() {
       className="w-full max-w-sm rounded-2xl border border-white/10 bg-surface-900/50 p-8"
     >
       <Link href="/" className="mb-6 inline-flex items-center gap-2 font-display text-lg font-semibold text-gray-300 hover:text-white">
-        <span className="text-xl">◇</span>
+        <span className="text-xl" aria-hidden="true">◇</span>
         VibeMiner
       </Link>
       <h1 className="font-display text-2xl font-bold text-white">Sign in</h1>
       <p className="mt-1 text-sm text-gray-400">Access your miner or network account.</p>
       <form onSubmit={handleSubmit} className="mt-6 space-y-4">
         <div>
-          <label htmlFor="email" className="block text-sm font-medium text-gray-400">Email</label>
+          <label htmlFor="login-email" className="block text-sm font-medium text-gray-400">Email</label>
           <input
-            id="email"
+            id="login-email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => { setEmail(e.target.value); setFieldErrors((p) => ({ ...p, email: undefined })); }}
             required
-            className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none focus:ring-1 focus:ring-accent-cyan/50"
+            className={`mt-1 w-full rounded-lg border bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-1 ${
+              fieldErrors.email ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50' : 'border-white/10 focus:border-accent-cyan/50 focus:ring-accent-cyan/50'
+            }`}
             placeholder="you@example.com"
+            aria-invalid={!!fieldErrors.email}
+            aria-describedby={fieldErrors.email ? 'login-email-error' : undefined}
           />
+          {fieldErrors.email && <p id="login-email-error" className="mt-1 text-xs text-red-400">{fieldErrors.email}</p>}
         </div>
         <div>
-          <label htmlFor="password" className="block text-sm font-medium text-gray-400">Password</label>
+          <label htmlFor="login-password" className="block text-sm font-medium text-gray-400">Password</label>
           <input
-            id="password"
+            id="login-password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => { setPassword(e.target.value); setFieldErrors((p) => ({ ...p, password: undefined })); }}
             required
-            className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none focus:ring-1 focus:ring-accent-cyan/50"
+            className={`mt-1 w-full rounded-lg border bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-1 ${
+              fieldErrors.password ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50' : 'border-white/10 focus:border-accent-cyan/50 focus:ring-accent-cyan/50'
+            }`}
             placeholder="••••••••"
+            aria-invalid={!!fieldErrors.password}
+            aria-describedby={fieldErrors.password ? 'login-password-error' : undefined}
           />
+          {fieldErrors.password && <p id="login-password-error" className="mt-1 text-xs text-red-400">{fieldErrors.password}</p>}
         </div>
         {error && (
           <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">

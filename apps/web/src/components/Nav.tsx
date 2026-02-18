@@ -1,12 +1,15 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
 import { useAuth } from '@/contexts/AuthContext';
 import { useRouter } from 'next/navigation';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 
 export function Nav() {
+  const reduced = useReducedMotion() ?? false;
+  const isDesktop = useIsDesktop();
   const { user, profile, accountType, loading, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -34,14 +37,14 @@ export function Nav() {
 
   return (
     <motion.header
-      initial={{ y: -20, opacity: 0 }}
+      initial={reduced ? false : { y: -20, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
-      transition={{ duration: 0.5 }}
+      transition={{ duration: reduced ? 0 : 0.5 }}
       className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-surface-950/80 backdrop-blur-xl"
     >
       <nav className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-4 px-4 py-4 sm:px-6">
         <Link href="/" className="flex items-center gap-2 font-display text-lg font-semibold tracking-tight">
-          <span className="text-2xl">◇</span>
+          <span className="text-2xl" aria-hidden="true">◇</span>
           <span className="bg-gradient-to-r from-accent-cyan to-emerald-400 bg-clip-text text-transparent">
             VibeMiner
           </span>
@@ -53,9 +56,14 @@ export function Nav() {
           <Link href="/#how-it-works" className="text-sm font-medium text-gray-400 transition hover:text-white">
             How it works
           </Link>
-          <Link href="/download" className="text-sm font-medium text-gray-400 transition hover:text-white">
-            Download
-          </Link>
+          {!isDesktop && (
+            <Link href="/download" className="text-sm font-medium text-gray-400 transition hover:text-white">
+              Download
+            </Link>
+          )}
+          {isDesktop && (
+            <span className="text-sm font-medium text-accent-cyan/90" aria-hidden="true">Desktop app</span>
+          )}
           <Link href="/fees" className="text-sm font-medium text-gray-400 transition hover:text-white">
             Fees
           </Link>
@@ -71,7 +79,7 @@ export function Nav() {
                   <span className="rounded bg-white/10 px-1.5 py-0.5 text-xs text-gray-400">
                     {accountType === 'network' ? 'Network' : 'Miner'}
                   </span>
-                  <span className="text-gray-500">▾</span>
+                  <span className="text-gray-500" aria-hidden="true">▾</span>
                 </button>
                 {open && (
                   <motion.div

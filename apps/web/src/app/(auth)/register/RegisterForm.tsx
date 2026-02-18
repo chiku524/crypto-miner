@@ -24,26 +24,41 @@ export function RegisterForm() {
   const [networkName, setNetworkName] = useState('');
   const [networkWebsite, setNetworkWebsite] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [fieldErrors, setFieldErrors] = useState<{ email?: string; password?: string; networkName?: string }>({});
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = useMemo(() => getReturnTo(searchParams), [searchParams]);
 
+  const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
   function chooseType(type: AccountType) {
     setAccountType(type);
     setStep(type === 'user' ? 'miner' : 'network');
     setError(null);
+    setFieldErrors({});
+  }
+
+  function validate(): boolean {
+    const next: typeof fieldErrors = {};
+    if (!email.trim()) next.email = 'Email is required.';
+    else if (!emailRe.test(email)) next.email = 'Please enter a valid email address.';
+    if (password.length < 6) next.password = 'Password must be at least 6 characters.';
+    if (accountType === 'network' && !networkName.trim()) next.networkName = 'Network name is required.';
+    setFieldErrors(next);
+    return Object.keys(next).length === 0;
   }
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
     setError(null);
-    setLoading(true);
+    setFieldErrors({});
     if (!accountType) {
       setError('Account type missing.');
-      setLoading(false);
       return;
     }
+    if (!validate()) return;
+    setLoading(true);
     const result = await register({
       email,
       password,
@@ -69,7 +84,7 @@ export function RegisterForm() {
         className="w-full max-w-md rounded-2xl border border-white/10 bg-surface-900/50 p-8"
       >
         <Link href="/" className="mb-6 inline-flex items-center gap-2 font-display text-lg font-semibold text-gray-300 hover:text-white">
-          <span className="text-xl">◇</span>
+          <span className="text-xl" aria-hidden="true">◇</span>
           VibeMiner
         </Link>
         <h1 className="font-display text-2xl font-bold text-white">Create an account</h1>
@@ -80,7 +95,7 @@ export function RegisterForm() {
             onClick={() => chooseType('user')}
             className="rounded-xl border border-white/10 bg-surface-850/80 p-6 text-left transition hover:border-accent-cyan/30 hover:bg-surface-850"
           >
-            <span className="text-3xl">⛏</span>
+            <span className="text-3xl" aria-hidden="true">⛏</span>
             <h2 className="mt-3 font-display font-semibold text-white">Miner</h2>
             <p className="mt-1 text-sm text-gray-400">I want to mine and earn. Personal account for hashrate and payouts.</p>
           </button>
@@ -89,7 +104,7 @@ export function RegisterForm() {
             onClick={() => chooseType('network')}
             className="rounded-xl border border-white/10 bg-surface-850/80 p-6 text-left transition hover:border-accent-cyan/30 hover:bg-surface-850"
           >
-            <span className="text-3xl">◇</span>
+            <span className="text-3xl" aria-hidden="true">◇</span>
             <h2 className="mt-3 font-display font-semibold text-white">Network</h2>
             <p className="mt-1 text-sm text-gray-400">I represent a blockchain. Register to request mining service and get listed.</p>
           </button>
@@ -144,10 +159,15 @@ export function RegisterForm() {
                 id="networkName"
                 type="text"
                 value={networkName}
-                onChange={(e) => setNetworkName(e.target.value)}
-                className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
+                onChange={(e) => { setNetworkName(e.target.value); setFieldErrors((p) => ({ ...p, networkName: undefined })); }}
+                className={`mt-1 w-full rounded-lg border bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-1 ${
+                  fieldErrors.networkName ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50' : 'border-white/10 focus:border-accent-cyan/50 focus:ring-accent-cyan/50'
+                }`}
                 placeholder="e.g. My Chain"
+                aria-invalid={!!fieldErrors.networkName}
+                aria-describedby={fieldErrors.networkName ? 'networkName-error' : undefined}
               />
+              {fieldErrors.networkName && <p id="networkName-error" className="mt-1 text-xs text-red-400">{fieldErrors.networkName}</p>}
             </div>
             <div>
               <label htmlFor="networkWebsite" className="block text-sm font-medium text-gray-400">Website (optional)</label>
@@ -168,11 +188,16 @@ export function RegisterForm() {
             id="email"
             type="email"
             value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            onChange={(e) => { setEmail(e.target.value); setFieldErrors((p) => ({ ...p, email: undefined })); }}
             required
-            className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
+            className={`mt-1 w-full rounded-lg border bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-1 ${
+              fieldErrors.email ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50' : 'border-white/10 focus:border-accent-cyan/50 focus:ring-accent-cyan/50'
+            }`}
             placeholder="you@example.com"
+            aria-invalid={!!fieldErrors.email}
+            aria-describedby={fieldErrors.email ? 'email-error' : undefined}
           />
+          {fieldErrors.email && <p id="email-error" className="mt-1 text-xs text-red-400">{fieldErrors.email}</p>}
         </div>
         <div>
           <label htmlFor="password" className="block text-sm font-medium text-gray-400">Password</label>
@@ -180,13 +205,17 @@ export function RegisterForm() {
             id="password"
             type="password"
             value={password}
-            onChange={(e) => setPassword(e.target.value)}
+            onChange={(e) => { setPassword(e.target.value); setFieldErrors((p) => ({ ...p, password: undefined })); }}
             required
             minLength={6}
-            className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
+            className={`mt-1 w-full rounded-lg border bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:outline-none focus:ring-1 ${
+              fieldErrors.password ? 'border-red-500/50 focus:border-red-500/50 focus:ring-red-500/50' : 'border-white/10 focus:border-accent-cyan/50 focus:ring-accent-cyan/50'
+            }`}
             placeholder="••••••••"
+            aria-invalid={!!fieldErrors.password}
+            aria-describedby={fieldErrors.password ? 'password-error' : undefined}
           />
-          <p className="mt-1 text-xs text-gray-500">At least 6 characters</p>
+          {fieldErrors.password ? <p id="password-error" className="mt-1 text-xs text-red-400">{fieldErrors.password}</p> : <p className="mt-1 text-xs text-gray-500">At least 6 characters</p>}
         </div>
         {error && (
           <p className="rounded-lg border border-red-500/20 bg-red-500/10 px-3 py-2 text-sm text-red-400">
