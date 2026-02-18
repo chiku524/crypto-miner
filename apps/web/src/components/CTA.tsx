@@ -17,14 +17,22 @@ export function CTA() {
             Ready to mine without the terminal?
           </h2>
           <p className="mt-3 text-gray-400">
-            Start contributing hashrate in one click. Available on web and desktop.
+            Start contributing hashrate in one click. Use the web app or download for Windows, Mac & Linux—same dashboard, auto-updates included.
           </p>
-          <Link
-            href="/dashboard"
-            className="mt-8 inline-block rounded-xl bg-accent-cyan px-8 py-3 font-medium text-surface-950 transition hover:brightness-110"
-          >
-            Open dashboard
-          </Link>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
+            <Link
+              href="/dashboard"
+              className="inline-block rounded-xl bg-accent-cyan px-8 py-3 font-medium text-surface-950 transition hover:brightness-110"
+            >
+              Open dashboard
+            </Link>
+            <Link
+              href="/download"
+              className="inline-block rounded-xl border border-white/20 px-8 py-3 font-medium text-gray-300 transition hover:border-white/30 hover:bg-white/5"
+            >
+              Download desktop
+            </Link>
+          </div>
         </motion.div>
       </div>
     </section>

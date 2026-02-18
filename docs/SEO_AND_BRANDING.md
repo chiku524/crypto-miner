@@ -1,6 +1,17 @@
 # SEO & Branding
 
-This document describes the SEO and branding setup for VibeMiner. Once Cloudflare is configured with your domain, these will be active.
+This document describes the SEO and branding setup for VibeMiner. Once your domain is configured (e.g. Vercel or Cloudflare), these are active.
+
+## Slogan
+
+The slogan is defined in **`apps/web/src/lib/site.ts`** as `site.slogan`. It is used in:
+
+- Default page title and Open Graph / Twitter cards
+- Hero tagline on the homepage
+- OG image (social share)
+- JSON-LD structured data
+
+Current slogan: **"Mine without the grind."** To change it, edit `site.slogan` in `site.ts`. See `docs/SLOGAN_OPTIONS.md` for alternatives.
 
 ## Domain configuration
 
@@ -15,21 +26,21 @@ Set `NEXT_PUBLIC_APP_URL` to your production domain (e.g. `https://vibeminer.ai`
 
 ### Meta tags
 
-- **Title**: `VibeMiner — Decentralized Mining, Simplified` (with per-page template)
-- **Description**: `Mine cryptocurrencies for networks that need you. No terminal required.`
-- **Keywords**: crypto mining, blockchain, mining pool, Monero, Kaspa, etc.
+- **Title**: `VibeMiner — [slogan]` (with per-page template `%s | VibeMiner`)
+- **Description**: Full value prop including desktop, auto-updates, nico.builds
+- **Keywords**: crypto mining, blockchain mining, mining pool, decentralized mining, one-click mining, Monero, Kaspa, Raptoreum, Ergo, VibeMiner, no terminal mining, hashrate
 - **Open Graph**: type, locale, url, siteName, title, description
-- **Twitter Card**: summary_large_image, title, description
+- **Twitter Card**: summary_large_image, title, description, creator
 - **Robots**: index, follow (crawlable)
 
 ### Structured data (JSON-LD)
 
-- **WebSite** schema with name, description, url, SearchAction (links to dashboard search)
+- **WebApplication** schema with name, description, url, slogan, applicationCategory (FinanceApplication), offers (free), SearchAction (dashboard search)
 
 ### Sitemap
 
 - `/sitemap.xml` – Generated dynamically
-- Includes: /, /dashboard, /fees, /login, /register
+- Includes: /, /download, /dashboard, /fees, /login, /register
 - Change frequencies and priorities set per route
 
 ### Robots.txt

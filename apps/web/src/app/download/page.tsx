@@ -45,7 +45,7 @@ export default function DownloadPage() {
           </h1>
           <p className="mt-2 text-gray-400">
             Install the app on your computer for a dedicated mining experience. Same dashboard as the
-            web—runs in its own window.
+            web—runs in its own window. Available for Windows, macOS (Apple Silicon), and Linux.
           </p>
 
           {hasAnyDownload ? (
@@ -88,8 +88,11 @@ export default function DownloadPage() {
                 After installing, open VibeMiner and sign in with the same account you use on the
                 web. Your dashboard and mining settings stay in sync.
               </p>
-              <p className="mt-3 text-xs text-gray-600">
-                Desktop installers are built and published by <a href="https://nico.builds" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition">nico.builds</a>. Same app you get from the web—packaged for your OS.
+              <p className="mt-3 text-sm text-gray-500">
+                The desktop app checks for updates automatically. You can turn auto-updates on or off in the app (Dashboard → Desktop app settings).
+              </p>
+              <p className="mt-2 text-xs text-gray-600">
+                Built and published by <a href="https://nico.builds" target="_blank" rel="noopener noreferrer" className="text-gray-500 hover:text-white transition">nico.builds</a>. Same app as the web—packaged for your OS.
               </p>
             </div>
           ) : (

@@ -1,7 +1,8 @@
 import { ImageResponse } from 'next/og';
+import { site } from '@/lib/site';
 
 export const runtime = 'edge';
-export const alt = 'VibeMiner — Decentralized Mining, Simplified';
+export const alt = `VibeMiner — ${site.slogan}`;
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 
@@ -20,7 +21,6 @@ export default async function OpenGraphImage() {
           fontFamily: 'system-ui, sans-serif',
         }}
       >
-        {/* Diamond + logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 24, marginBottom: 32 }}>
           <svg
             width="72"
@@ -58,14 +58,15 @@ export default async function OpenGraphImage() {
         </div>
         <p
           style={{
-            fontSize: 28,
+            fontSize: 32,
             color: '#94a3b8',
             margin: 0,
-            maxWidth: 600,
+            maxWidth: 640,
             textAlign: 'center',
+            fontWeight: 600,
           }}
         >
-          Decentralized mining, simplified
+          {site.slogan}
         </p>
         <p
           style={{

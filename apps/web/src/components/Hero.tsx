@@ -2,6 +2,7 @@
 
 import { motion } from 'framer-motion';
 import Link from 'next/link';
+import { site } from '@/lib/site';
 
 export function Hero() {
   return (
@@ -20,7 +21,7 @@ export function Hero() {
           transition={{ delay: 0.2 }}
           className="mb-4 font-mono text-sm uppercase tracking-widest text-accent-cyan"
         >
-          Decentralized mining, simplified
+          {site.slogan}
         </motion.p>
         <motion.h1
           initial={{ opacity: 0, y: 16 }}
@@ -84,11 +85,12 @@ export function Hero() {
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 1, duration: 0.5 }}
-        className="mt-16 flex gap-8 text-sm text-gray-500"
+        className="mt-16 flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-gray-500"
       >
         <span>✓ No terminal</span>
         <span>✓ One-click start</span>
         <span>✓ Web & desktop</span>
+        <span>✓ Windows · macOS · Linux</span>
       </motion.div>
     </section>
   );
