@@ -1,16 +1,53 @@
 import { FEE_CONFIG, formatWithdrawalFee } from '@vibeminer/shared';
-import Link from 'next/link';
 import { Nav } from '@/components/Nav';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { site } from '@/lib/site';
+import type { Metadata } from 'next';
 
-export const metadata = {
+const base = site.baseUrl.replace(/\/$/, '');
+
+export const metadata: Metadata = {
   title: 'Fees & transparency',
   description: 'Network listing fees and miner withdrawal fees. Transparent pricing. VibeMiner by nico.builds.',
+  alternates: { canonical: `${base}/fees` },
+  openGraph: { url: `${base}/fees`, title: 'Fees & transparency | VibeMiner', description: 'Transparent fees for network listings and miner withdrawals. No hidden charges.' },
+};
+
+const feesJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: [
+    {
+      '@type': 'Question',
+      name: 'What is the network listing fee?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `One-time fee of ${FEE_CONFIG.NETWORK_LISTING.amount} to list your blockchain on VibeMiner. Automated and decentralized—no admin approval. Devnet listings are free.`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'What is the miner withdrawal fee?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: `Service fee of ${FEE_CONFIG.WITHDRAWAL.percent}% when you withdraw earnings to your wallet. ${FEE_CONFIG.WITHDRAWAL.description}`,
+      },
+    },
+    {
+      '@type': 'Question',
+      name: 'How does VibeMiner use fees?',
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: 'Fees cover infrastructure, pool connectivity, and platform maintenance. No hidden charges.',
+      },
+    },
+  ],
 };
 
 export default function FeesPage() {
   return (
     <main className="min-h-screen bg-surface-950 bg-grid">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(feesJsonLd) }} />
       <Nav />
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
         <Breadcrumbs crumbs={[{ label: 'Home', href: '/' }, { label: 'Fees & transparency' }]} />

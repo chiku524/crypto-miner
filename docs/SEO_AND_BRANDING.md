@@ -27,19 +27,31 @@ Set `NEXT_PUBLIC_APP_URL` to your production domain (e.g. `https://vibeminer.tec
 ### Meta tags
 
 - **Title**: `VibeMiner — [slogan]` (with per-page template `%s | VibeMiner`)
-- **Description**: Full value prop including desktop, auto-updates, nico.builds
-- **Keywords**: crypto mining, blockchain mining, mining pool, decentralized mining, one-click mining, Monero, Kaspa, Raptoreum, Ergo, VibeMiner, no terminal mining, hashrate
-- **Open Graph**: type, locale, url, siteName, title, description
-- **Twitter Card**: summary_large_image, title, description, creator
-- **Robots**: index, follow (crawlable)
+- **Description**: Full value prop including one-click mining, desktop, auto-updates, networks (Monero, Kaspa, Ergo, etc.), nico.builds
+- **Keywords**: crypto mining, blockchain mining, mining pool, decentralized mining, one-click mining, Monero, Kaspa, Raptoreum, Ergo, VibeMiner, no terminal mining, hashrate, contribute hashrate, mining without terminal
+- **Open Graph**: type, locale, url, siteName, title, description, **images** (absolute URL to `/opengraph-image`, 1200×630)
+- **Twitter Card**: summary_large_image, title, description, creator, **images**
+- **Canonical**: Root and per-page canonicals (home, /download, /dashboard, /fees, /login, /register)
+- **Robots**: index, follow (crawlable); formatDetection (telephone/email off)
+- **Publisher / creator**: VibeMiner
 
 ### Structured data (JSON-LD)
 
-- **WebApplication** schema with name, description, url, slogan, applicationCategory (FinanceApplication), offers (free), SearchAction (dashboard search)
+- **WebApplication**: name, description, url, slogan, applicationCategory (FinanceApplication), applicationSubCategory (Cryptocurrency mining), operatingSystem, offers (free), featureList, SearchAction (dashboard search)
+- **Organization**: name, url, logo, sameAs (Twitter)
+- **WebSite**: name, url, description, SearchAction (sitelinks search box)
+- **FAQPage** (on `/fees`): network listing fee, withdrawal fee, how fees are used
+
+### Per-page SEO
+
+- **Download** (`/download`): canonical, Open Graph url/title/description
+- **Dashboard** (`/dashboard`): canonical, Open Graph url/title/description
+- **Fees** (`/fees`): canonical, Open Graph, FAQPage JSON-LD
+- **Login** / **Register**: canonical, Open Graph url/title
 
 ### Sitemap
 
-- `/sitemap.xml` – Generated dynamically
+- `/sitemap.xml` – Generated dynamically (base URL normalized, no trailing slash)
 - Includes: /, /download, /dashboard, /fees, /login, /register
 - Change frequencies and priorities set per route
 

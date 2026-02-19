@@ -17,8 +17,11 @@ const jetbrainsMono = JetBrains_Mono({
   display: 'swap',
 });
 
+const baseUrl = site.baseUrl;
+const ogImageUrl = `${baseUrl.replace(/\/$/, '')}${site.openGraphImagePath}`;
+
 export const metadata: Metadata = {
-  metadataBase: new URL(site.baseUrl),
+  metadataBase: new URL(baseUrl),
   title: {
     default: `${site.name} — ${site.slogan}`,
     template: `%s | ${site.name}`,
@@ -37,31 +40,35 @@ export const metadata: Metadata = {
     'VibeMiner',
     'no terminal mining',
     'hashrate',
+    'contribute hashrate',
+    'mining without terminal',
   ],
-  authors: [{ name: site.name, url: site.baseUrl }],
+  authors: [{ name: site.name, url: baseUrl }],
   creator: site.name,
+  publisher: site.name,
+  formatDetection: { telephone: false, email: false },
   openGraph: {
     type: 'website',
     locale: 'en_US',
-    url: site.baseUrl,
+    url: baseUrl,
     siteName: site.name,
     title: `${site.name} — ${site.slogan}`,
     description: site.description,
+    images: [{ url: ogImageUrl, width: 1200, height: 630, alt: `${site.name} — ${site.slogan}` }],
   },
   twitter: {
     card: 'summary_large_image',
     title: `${site.name} — ${site.slogan}`,
     description: site.description,
     creator: site.twitter,
+    images: [ogImageUrl],
   },
   robots: {
     index: true,
     follow: true,
-    googleBot: {
-      index: true,
-      follow: true,
-    },
+    googleBot: { index: true, follow: true },
   },
+  alternates: { canonical: baseUrl },
 };
 
 export default function RootLayout({
@@ -69,23 +76,48 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const jsonLd = {
-    '@context': 'https://schema.org',
-    '@type': 'WebApplication',
-    name: site.name,
-    applicationCategory: 'FinanceApplication',
-    description: site.description,
-    url: site.baseUrl,
-    slogan: site.slogan,
-    offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD' },
-    potentialAction: {
-      '@type': 'SearchAction',
-      target: { '@type': 'EntryPoint', urlTemplate: `${site.baseUrl}/dashboard?search={search_term_string}` },
-      'query-input': 'required name=search_term_string',
+  const jsonLd = [
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebApplication',
+      name: site.name,
+      applicationCategory: 'FinanceApplication',
+      applicationSubCategory: 'Cryptocurrency mining',
+      description: site.description,
+      url: baseUrl,
+      slogan: site.slogan,
+      operatingSystem: 'Web browser, Windows, macOS, Linux',
+      offers: { '@type': 'Offer', price: '0', priceCurrency: 'USD', availability: 'https://schema.org/InStock' },
+      featureList: 'One-click mining, no terminal, desktop app with auto-updates, multi-network support',
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: { '@type': 'EntryPoint', urlTemplate: `${baseUrl}/dashboard?search={search_term_string}` },
+        'query-input': 'required name=search_term_string',
+      },
     },
-  };
+    {
+      '@context': 'https://schema.org',
+      '@type': 'Organization',
+      name: site.name,
+      url: baseUrl,
+      logo: `${baseUrl}/icon`,
+      sameAs: [`https://twitter.com/${site.twitter.replace('@', '')}`],
+    },
+    {
+      '@context': 'https://schema.org',
+      '@type': 'WebSite',
+      name: site.name,
+      url: baseUrl,
+      description: site.description,
+      potentialAction: {
+        '@type': 'SearchAction',
+        target: { '@type': 'EntryPoint', urlTemplate: `${baseUrl}/dashboard?search={search_term_string}` },
+        'query-input': 'required name=search_term_string',
+      },
+    },
+  ];
 
-  const origin = new URL(site.baseUrl).origin;
+  const origin = new URL(baseUrl).origin;
 
   return (
     <html lang="en" className="dark">

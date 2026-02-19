@@ -6,7 +6,9 @@ export const site = {
   name: 'VibeMiner',
   slogan: 'Mine without the grind.',
   description:
-    'Mine cryptocurrencies for networks that need you. No terminal required. Web app and desktop (Windows, macOS, Linux) with auto-updates. By nico.builds.',
+    'Mine cryptocurrencies for networks that need you. One-click mining, no terminal or config files. Web app and desktop (Windows, macOS, Linux) with auto-updates. Contribute hashrate to Monero, Kaspa, Ergo and more. By nico.builds.',
   baseUrl: process.env.NEXT_PUBLIC_APP_URL ?? 'https://vibeminer.tech',
   twitter: '@vibeminer',
+  /** Used for Open Graph and Twitter Card images (absolute URL). */
+  openGraphImagePath: '/opengraph-image',
 } as const;

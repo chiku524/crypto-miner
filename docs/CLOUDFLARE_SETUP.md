@@ -110,6 +110,27 @@ You can also deploy to [Cloudflare Pages](https://developers.cloudflare.com/page
 
 `NEXT_PUBLIC_APP_URL` is set to `https://vibeminer.tech` in `wrangler.toml` [vars]; override with a secret if needed.
 
+## 9. HTTPS / “Not secure” warning
+
+Browsers show “Not secure” when the page is loaded over **HTTP** or the **SSL certificate** is invalid or still provisioning. Fix it as follows:
+
+1. **Always use https://**  
+   Open **https://vibeminer.tech** (and **https://www.vibeminer.tech**). If you use `http://`, the browser will treat the site as not secure.
+
+2. **DNS proxied through Cloudflare**  
+   In the Cloudflare dashboard, go to **vibeminer.tech** → **DNS** → **Records**. For the records that point to your Worker (or to the target you use for the Worker), the cloud icon should be **orange (Proxied)**. If it’s grey (DNS only), traffic is not going through Cloudflare and won’t get Cloudflare’s SSL.
+
+3. **SSL/TLS mode**  
+   Go to **vibeminer.tech** → **SSL/TLS**. Set the encryption mode to **Full** or **Full (strict)** so traffic between the browser and Cloudflare is HTTPS.
+
+4. **Wait for the certificate**  
+   After adding the custom domain to the Worker, Cloudflare issues an edge certificate. That can take a few minutes. In **SSL/TLS** → **Edge Certificates**, check that the certificate for vibeminer.tech (and www.vibeminer.tech) is **Active**. Until it is, you may see “Not secure” or certificate errors.
+
+5. **Redirect HTTP → HTTPS**  
+   In **SSL/TLS** → **Edge Certificates**, turn **Always Use HTTPS** **On**. Then `http://vibeminer.tech` will redirect to `https://vibeminer.tech`.
+
+After the edge certificate is Active and you use **https://**, the site should show as secure (padlock) in the browser.
+
 ## Summary
 
 | Resource   | Purpose                                                    |
