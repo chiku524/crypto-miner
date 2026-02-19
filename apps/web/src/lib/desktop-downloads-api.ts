@@ -11,7 +11,8 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 function getGitHubToken(): string | undefined {
   try {
     const ctx = getCloudflareContext();
-    const token = (ctx.env as Record<string, string | undefined>).GITHUB_TOKEN;
+    const env = ctx.env as unknown as Record<string, string | undefined>;
+    const token = env.GITHUB_TOKEN;
     if (token) return token;
   } catch {
     // Not running in Cloudflare context (e.g. next dev)
