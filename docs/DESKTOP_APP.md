@@ -8,6 +8,12 @@ This doc covers next steps for the Electron desktop app, making it installable f
 
 Releases are built and published automatically when you **push a version tag** to the repo.
 
+### When do releases have installers?
+
+**Releases created by the “Release desktop app” workflow always have installers.** The workflow runs when you **push a version tag** (e.g. `v1.0.0`) or when you run it manually with a tag. It builds the Windows (.exe), macOS (.dmg), and Linux (.AppImage) installers and attaches them to the GitHub Release for that tag. So every release produced by this workflow includes the three installers.
+
+Releases created **manually** in the GitHub UI (without running the workflow) do **not** get installers unless you upload the built files yourself. So to have installers, use the tag-based flow (push `v*`) or run the workflow with an existing tag.
+
 ### Steps to publish a new desktop release
 
 1. **Create and push a tag** (format `v*`, e.g. `v1.0.0`):

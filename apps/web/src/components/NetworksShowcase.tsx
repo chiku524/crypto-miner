@@ -221,12 +221,13 @@ export function NetworksShowcase() {
   useEffect(() => {
     fetch('/api/networks')
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Failed to fetch'))))
-      .then((data: { mainnet?: NetworkWithMeta[]; devnet?: NetworkWithMeta[] }) => {
-        if (Array.isArray(data.mainnet)) {
-          setMainnetNetworks(sortNewestFirst(data.mainnet));
+      .then((data: unknown) => {
+        const parsed = data as { mainnet?: NetworkWithMeta[]; devnet?: NetworkWithMeta[] };
+        if (Array.isArray(parsed.mainnet)) {
+          setMainnetNetworks(sortNewestFirst(parsed.mainnet));
         }
-        if (Array.isArray(data.devnet)) {
-          setDevnetNetworks(sortNewestFirst(data.devnet));
+        if (Array.isArray(parsed.devnet)) {
+          setDevnetNetworks(sortNewestFirst(parsed.devnet));
         }
       })
       .catch(() => {});
