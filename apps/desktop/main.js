@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
 
-// Packaged app = production (no dev tools, load vibeminer.ai). Unpackaged = dev (localhost + dev tools).
+// Packaged app = production (no dev tools, load vibeminer.vercel.app). Unpackaged = dev (localhost + dev tools).
 const isDev = !app.isPackaged;
 
 const SETTINGS_FILE = 'settings.json';
