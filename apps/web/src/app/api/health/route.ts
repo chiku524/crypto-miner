@@ -9,6 +9,6 @@ export async function GET() {
   return NextResponse.json({
     ok: true,
     name: site.name,
-    version: '1.0.0',
+    version: '1.0.1',
   });
 }

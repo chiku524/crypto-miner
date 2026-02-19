@@ -43,6 +43,8 @@ So if you still see old behavior (e.g. dev tools, blank screen): **fully quit th
 
 **Why don’t I see an update?** Auto-update only finds a new version when a **GitHub Release** exists for a **higher** version than the one you have (e.g. the repo has `v1.0.1` and you have `1.0.0`). The release must include the built installers and update metadata (`latest.yml`, etc.) — which the **release-desktop** workflow creates when you push a version tag. If you haven’t published a release yet, or the latest release is still the same version you installed, the app will report “You’re up to date”. To ship an update: bump the version (e.g. in `apps/desktop/package.json`), push a tag like `v1.0.1`, and let the workflow run; then installed clients will see the update on next check.
 
+**Why does the taskbar or shortcut show the Electron icon?** The app icon (taskbar, desktop shortcut, Start menu) is built into the installer. If you see the default Electron icon, you may be on an older build. **Reinstall from the latest [Releases](https://github.com/chiku524/VibeMiner/releases)** so the installer includes the VibeMiner icon. New releases are built with the correct icon (NSIS installer + window icon).
+
 **Important:** Auto-update only runs for the **installed** app (the .exe / .dmg / AppImage you downloaded from Releases). If you run the app from source (`npm run dev` or `electron .`), you are not running the installed build — you’ll see dev tools and localhost, and no auto-update. To get the fixed behaviour (no dev tools, no blank screen), run the installer from the [Releases](https://github.com/chiku524/VibeMiner/releases) page.
 
 ---
