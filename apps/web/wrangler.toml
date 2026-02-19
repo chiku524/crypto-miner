@@ -1,28 +1,32 @@
-# Cloudflare Workers configuration for VibeMiner
-# Run: npx wrangler login (then create resources when you have a Cloudflare account)
+# Cloudflare Workers configuration for VibeMiner (vibeminer.tech)
+# 1. Run: npx wrangler login
+# 2. Create D1, KV, R2 (see docs/CLOUDFLARE_SETUP.md), then paste IDs below
+# 3. Add custom domain vibeminer.tech in Cloudflare dashboard: Workers & Pages > vibeminer > Settings > Domains
 
 name = "vibeminer"
 main = ".open-next/worker.js"
 compatibility_date = "2024-11-11"
 compatibility_flags = ["nodejs_compat"]
 
+[vars]
+NEXT_PUBLIC_APP_URL = "https://vibeminer.tech"
+
 [assets]
 directory = ".open-next/assets"
 binding = "ASSETS"
 
-# D1 Database - replace database_id after: wrangler d1 create vibeminer-db
+# D1 Database - replace database_id after: npx wrangler d1 create vibeminer-db
 [[d1_databases]]
 binding = "DB"
 database_name = "vibeminer-db"
 database_id = "YOUR_D1_DATABASE_ID"
-# For local dev, wrangler will use a local D1 instance automatically
 
-# KV Namespace - replace id after: wrangler kv namespace create SESSIONS
+# KV Namespace - replace id after: npx wrangler kv namespace create SESSIONS
 [[kv_namespaces]]
 binding = "KV"
 id = "YOUR_KV_NAMESPACE_ID"
 
-# R2 Bucket - replace bucket_name after: wrangler r2 bucket create vibeminer-storage
+# R2 Bucket - create with: npx wrangler r2 bucket create vibeminer-storage
 [[r2_buckets]]
 binding = "R2"
 bucket_name = "vibeminer-storage"

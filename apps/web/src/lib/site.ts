@@ -7,6 +7,6 @@ export const site = {
   slogan: 'Mine without the grind.',
   description:
     'Mine cryptocurrencies for networks that need you. No terminal required. Web app and desktop (Windows, macOS, Linux) with auto-updates. By nico.builds.',
-  baseUrl: process.env.NEXT_PUBLIC_APP_URL ?? 'https://vibeminer.ai',
+  baseUrl: process.env.NEXT_PUBLIC_APP_URL ?? 'https://vibeminer.tech',
   twitter: '@vibeminer',
 } as const;

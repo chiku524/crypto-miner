@@ -61,7 +61,7 @@ export default function FeesPage() {
         </div>
 
         <p className="mt-12 text-center text-sm text-gray-600">
-          Questions? <a href="mailto:support@vibeminer.ai" className="text-accent-cyan hover:underline">support@vibeminer.ai</a>
+          Questions? <a href="mailto:support@vibeminer.tech" className="text-accent-cyan hover:underline">support@vibeminer.tech</a>
         </p>
       </div>
     </main>

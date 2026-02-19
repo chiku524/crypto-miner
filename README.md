@@ -49,7 +49,7 @@ This starts the web app and opens it in an Electron window. For a production bui
 cd apps/desktop && npm run build
 ```
 
-The desktop app loads the deployed web URL in production (default: `https://vibeminer.ai`). Set `APP_URL` when building to use your custom domain.
+The desktop app loads the deployed web URL in production (default: `https://vibeminer.tech`). Set `APP_URL` when building to use your custom domain.
 
 **Releasing installers:** Push a version tag (e.g. `v1.0.0`) to trigger [`.github/workflows/release-desktop.yml`](.github/workflows/release-desktop.yml). The workflow builds Windows, macOS, and Linux installers and creates a [GitHub Release](https://github.com/chiku524/crypto-miner/releases) with the artifacts. Then set `NEXT_PUBLIC_DESKTOP_DOWNLOAD_WIN`, `_MAC`, and `_LINUX` in your web app env so the download page works. See **[`docs/TRUST_AND_NEXT_STEPS.md`](docs/TRUST_AND_NEXT_STEPS.md)** for the exact Vercel steps and trust/signing options; [`docs/DESKTOP_APP.md`](docs/DESKTOP_APP.md) for signing/notarization and marketplaces.
 

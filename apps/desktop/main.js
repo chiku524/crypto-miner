@@ -3,7 +3,7 @@ const path = require('path');
 const fs = require('fs');
 const { autoUpdater } = require('electron-updater');
 
-// Packaged app = production (no dev tools, load vibeminer.vercel.app). Unpackaged = dev (localhost + dev tools).
+// Packaged app = production (no dev tools, load vibeminer.tech). Unpackaged = dev (localhost + dev tools).
 const isDev = !app.isPackaged;
 
 const SETTINGS_FILE = 'settings.json';
@@ -60,9 +60,14 @@ const FAILED_LOAD_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta
 let mainWindow = null;
 
 function createWindow() {
-  const buildDir = path.join(__dirname, 'build');
+  // Resolve icon: when packaged, use unpacked resources so Windows taskbar gets the correct icon
   const iconName = process.platform === 'win32' ? 'icon.ico' : process.platform === 'darwin' ? 'icon.icns' : 'icon.png';
-  const iconPath = path.join(buildDir, iconName);
+  let iconPath = path.join(__dirname, 'build', iconName);
+  if (app.isPackaged && process.resourcesPath) {
+    const unpackedIcon = path.join(process.resourcesPath, 'app.asar.unpacked', 'build', iconName);
+    if (fs.existsSync(unpackedIcon)) iconPath = unpackedIcon;
+  }
+  if (!fs.existsSync(iconPath)) iconPath = path.join(__dirname, 'build', iconName);
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -88,7 +93,7 @@ function createWindow() {
   const chromeUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
   win.webContents.setUserAgent(chromeUA);
 
-  const appUrl = isDev ? 'http://localhost:3000' : (process.env.APP_URL || 'https://vibeminer.vercel.app');
+  const appUrl = isDev ? 'http://localhost:3000' : (process.env.APP_URL || 'https://vibeminer.tech');
   let hasShown = false;
 
   function showWhenReady() {

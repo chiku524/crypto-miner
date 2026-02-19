@@ -62,6 +62,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     loadSession();
+    // If session fetch hangs (e.g. API down), stop loading after 5s so dashboard still renders
+    const timeout = setTimeout(() => {
+      setState((prev) => (prev.loading ? { ...prev, loading: false } : prev));
+    }, 5000);
+    return () => clearTimeout(timeout);
   }, [loadSession]);
 
   const logout = useCallback(async () => {

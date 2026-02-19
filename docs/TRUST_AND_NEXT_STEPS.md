@@ -123,7 +123,7 @@ Click each button and confirm the correct installer downloads from GitHub.
 ## Optional tweaks
 
 - **Portfolio URL:** The Footer and download page link to `https://nico.builds`. If your real URL is different (e.g. `https://nicobuilds.com`), search for `nico.builds` in `apps/web/src` and replace the `href` with your URL.
-- **Support email:** The Footer uses `support@vibeminer.ai`. You can change it to a nico.builds email (e.g. `hello@nico.builds`) in `apps/web/src/components/Footer.tsx` and any other place that references the support address.
+- **Support email:** The Footer uses `support@vibeminer.tech`. You can change it in `apps/web/src/components/Footer.tsx` and `apps/web/src/app/fees/page.tsx` if needed.
 - **Future releases:** When you cut a new version (e.g. `v1.1.0`), push the tag, wait for the workflow, then update the three Vercel env vars to the new release’s installer URLs so “Download” always points at the latest (or keep them on a fixed version if you prefer).
 
 That’s it. Once the env vars are set and the release exists, the download process is in place and consistently branded as nico.builds.

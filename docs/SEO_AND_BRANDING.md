@@ -15,7 +15,7 @@ Current slogan: **"Mine without the grind."** To change it, edit `site.slogan` i
 
 ## Domain configuration
 
-Set `NEXT_PUBLIC_APP_URL` to your production domain (e.g. `https://vibeminer.ai`). This is used for:
+Set `NEXT_PUBLIC_APP_URL` to your production domain (e.g. `https://vibeminer.tech`). This is used for:
 
 - Canonical URLs
 - Open Graph and Twitter Card URLs
@@ -84,12 +84,12 @@ When deploying to Cloudflare:
 2. Set `NEXT_PUBLIC_APP_URL` in Wrangler secrets or environment:
    ```bash
    npx wrangler secret put NEXT_PUBLIC_APP_URL
-   # Enter: https://yourdomain.com
+   # Enter: https://vibeminer.tech
    ```
 3. Or set it in `wrangler.toml` under `[vars]`:
    ```toml
    [vars]
-   NEXT_PUBLIC_APP_URL = "https://yourdomain.com"
+   NEXT_PUBLIC_APP_URL = "https://vibeminer.tech"
    ```
 
 ## Testing SEO

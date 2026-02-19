@@ -19,7 +19,7 @@ export function Footer() {
           {!isDesktop && <Link href="/download" className="transition hover:text-white">Download</Link>}
           <Link href="/fees" className="transition hover:text-white">Fees</Link>
           <Link href="/dashboard" className="transition hover:text-white">Dashboard</Link>
-          <a href="mailto:support@vibeminer.ai" className="transition hover:text-white">Support</a>
+          <a href="mailto:support@vibeminer.tech" className="transition hover:text-white">Support</a>
         </div>
       </div>
       <p className="mt-6 text-center text-xs text-gray-600">

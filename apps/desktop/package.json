@@ -36,6 +36,9 @@
       "preload.js",
       "build"
     ],
+    "asarUnpack": [
+      "build/**"
+    ],
     "publish": {
       "provider": "github",
       "owner": "chiku524",
@@ -55,8 +58,9 @@
       "target": [
         "nsis"
       ],
+      "icon": "build/icon.ico",
       "publisherName": "nico.builds",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": true
     },
     "linux": {
       "target": [

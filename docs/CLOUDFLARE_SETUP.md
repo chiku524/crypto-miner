@@ -1,6 +1,6 @@
-# Cloudflare setup for VibeMiner
+# Cloudflare setup for VibeMiner (vibeminer.tech)
 
-This project uses **Cloudflare D1** (database), **KV** (sessions), and **R2** (storage). Once you have a Cloudflare account and domain, follow these steps.
+This project uses **Cloudflare D1** (database), **KV** (sessions), and **R2** (storage). The Worker is configured for the custom domain **vibeminer.tech**. Follow these steps to create the project and bindings.
 
 ## Prerequisites
 
@@ -100,13 +100,13 @@ This builds with OpenNext and deploys to Cloudflare Workers. You’ll get a `*.w
 
 You can also deploy to [Cloudflare Pages](https://developers.cloudflare.com/pages/) by connecting your Git repo. Configure the build command as `npm run build` and the output directory appropriately, or use the Pages + Workers integration for bindings.
 
-## 8. Custom domain (Cloudflare)
+## 8. Custom domain (vibeminer.tech)
 
-1. In the Cloudflare dashboard, add your domain.
-2. Add a DNS record (CNAME or A) pointing to your Worker/Pages.
-3. Update the Worker/Pages to use the custom domain.
+1. In the [Cloudflare dashboard](https://dash.cloudflare.com), add the domain **vibeminer.tech** (Add site > Enter domain).
+2. After the site is active, go to **Workers & Pages** → select the **vibeminer** worker → **Settings** → **Domains & routes** → **Add custom domain** → `vibeminer.tech` (and optionally `www.vibeminer.tech`).
+3. Deploy with `npm run deploy` from `apps/web`. The worker will then serve https://vibeminer.tech.
 
-Once deployed, set `APP_URL` (or `NEXT_PUBLIC_APP_URL`) to your production URL if needed for server-side fetches.
+`NEXT_PUBLIC_APP_URL` is set to `https://vibeminer.tech` in `wrangler.toml` [vars]; override with a secret if needed.
 
 ## Summary
 
