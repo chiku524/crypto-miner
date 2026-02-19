@@ -33,7 +33,8 @@
     },
     "files": [
       "main.js",
-      "preload.js"
+      "preload.js",
+      "build"
     ],
     "publish": {
       "provider": "github",

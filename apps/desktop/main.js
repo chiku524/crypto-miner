@@ -40,8 +40,8 @@ let mainWindow = null;
 
 function createWindow() {
   const buildDir = path.join(__dirname, 'build');
-const iconName = process.platform === 'win32' ? 'icon.ico' : process.platform === 'darwin' ? 'icon.icns' : 'icon.png';
-const iconPath = path.join(buildDir, iconName);
+  const iconName = process.platform === 'win32' ? 'icon.ico' : process.platform === 'darwin' ? 'icon.icns' : 'icon.png';
+  const iconPath = path.join(buildDir, iconName);
   const win = new BrowserWindow({
     width: 1200,
     height: 800,
@@ -63,6 +63,10 @@ const iconPath = path.join(buildDir, iconName);
 
   mainWindow = win;
 
+  // Use a normal Chrome user agent so the web app doesn't block or treat the request differently
+  const chromeUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
+  win.webContents.setUserAgent(chromeUA);
+
   const appUrl = isDev ? 'http://localhost:3000' : (process.env.APP_URL || 'https://vibeminer.ai');
   let hasShown = false;
 
@@ -75,7 +79,11 @@ const iconPath = path.join(buildDir, iconName);
 
   // Show window only when main frame has finished loading (avoids blank black screen)
   win.webContents.on('did-finish-load', () => {
-    if (!win.isDestroyed()) showWhenReady();
+    if (!win.isDestroyed()) {
+      // Hide scrollbar in the window (content can still scroll)
+      win.webContents.insertCSS('html, body { scrollbar-width: none; -ms-overflow-style: none; } html::-webkit-scrollbar, body::-webkit-scrollbar { display: none; }').catch(() => {});
+      showWhenReady();
+    }
   });
 
   win.webContents.on('did-fail-load', (_, errorCode, errorDescription, validatedUrl, isMainFrame) => {
