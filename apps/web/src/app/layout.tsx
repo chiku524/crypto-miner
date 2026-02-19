@@ -90,6 +90,7 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <head>
+        <meta name="theme-color" content="#0a0f14" />
         <link rel="preconnect" href={origin} />
         <link rel="dns-prefetch" href={origin} />
         <script
