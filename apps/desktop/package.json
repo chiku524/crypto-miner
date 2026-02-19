@@ -39,7 +39,7 @@
     "publish": {
       "provider": "github",
       "owner": "chiku524",
-      "repo": "crypto-miner",
+      "repo": "VibeMiner",
       "vPrefixedTagName": true
     },
     "mac": {
