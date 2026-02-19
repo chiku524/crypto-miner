@@ -2,7 +2,22 @@
  * Server-side only: fetches latest GitHub release and returns desktop download URLs.
  * Used by the API route and by the download page for initial (SSR) data so the
  * first paint shows the latest release, not build-time env fallback.
+ * GITHUB_TOKEN (Cloudflare Worker secret) is used when set so the API has a higher rate limit.
  */
+
+import { getCloudflareContext } from '@opennextjs/cloudflare';
+
+/** Get token from Cloudflare env (production) or process.env (local/preview). */
+function getGitHubToken(): string | undefined {
+  try {
+    const ctx = getCloudflareContext();
+    const token = (ctx.env as Record<string, string | undefined>).GITHUB_TOKEN;
+    if (token) return token;
+  } catch {
+    // Not running in Cloudflare context (e.g. next dev)
+  }
+  return process.env.GITHUB_TOKEN ?? process.env.github_token;
+}
 
 /** Repo in owner/name form. Reads GITHUB_REPO or github_repo (Vercel preserves case). */
 export function getRepoFromEnv(): string {
@@ -63,7 +78,7 @@ interface GhRelease {
  */
 export async function getLatestDesktopDownloadUrls(): Promise<DesktopDownloadUrls> {
   const repo = getRepoFromEnv();
-  const token = process.env.GITHUB_TOKEN ?? process.env.github_token;
+  const token = getGitHubToken();
   const fallback = getEnvFallbackDownloads();
 
   try {
