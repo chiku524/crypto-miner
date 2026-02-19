@@ -67,7 +67,7 @@ function createWindow() {
   const chromeUA = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36';
   win.webContents.setUserAgent(chromeUA);
 
-  const appUrl = isDev ? 'http://localhost:3000' : (process.env.APP_URL || 'https://vibeminer.ai');
+  const appUrl = isDev ? 'http://localhost:3000' : (process.env.APP_URL || 'https://vibeminer.vercel.app');
   let hasShown = false;
 
   function showWhenReady() {
