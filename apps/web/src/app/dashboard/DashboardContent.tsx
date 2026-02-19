@@ -127,10 +127,11 @@ export function DashboardContent() {
     let cancelled = false;
     fetch('/api/networks')
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Failed to fetch'))))
-      .then((data: { mainnet?: NetworkWithMeta[]; devnet?: NetworkWithMeta[] }) => {
+      .then((data: unknown) => {
         if (cancelled) return;
-        setFetchedMainnet(Array.isArray(data.mainnet) ? data.mainnet : null);
-        setFetchedDevnet(Array.isArray(data.devnet) ? data.devnet : null);
+        const parsed = data as { mainnet?: NetworkWithMeta[]; devnet?: NetworkWithMeta[] };
+        setFetchedMainnet(Array.isArray(parsed.mainnet) ? parsed.mainnet : null);
+        setFetchedDevnet(Array.isArray(parsed.devnet) ? parsed.devnet : null);
       })
       .catch(() => {
         if (!cancelled) {

@@ -17,7 +17,7 @@ export function getRepoFromEnv(): string {
     const m = t.match(/github\.com[/:]([\w.-]+)\/([\w.-]+?)(?:\.git)?\/?$/i);
     if (m) return `${m[1]}/${m[2]}`;
   }
-  return 'chiku524/crypto-miner';
+  return 'chiku524/VibeMiner';
 }
 
 export type DesktopDownloadUrls = {
