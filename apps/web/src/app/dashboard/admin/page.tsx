@@ -34,7 +34,7 @@ export default function AdminDashboardPage() {
     fetch('/api/admin/stats', { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Failed to load stats');
-        return res.json();
+        return res.json() as Promise<Stats>;
       })
       .then(setStats)
       .catch(() => setStatsError('Could not load stats'));
