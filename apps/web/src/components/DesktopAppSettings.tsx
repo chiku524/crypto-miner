@@ -11,7 +11,7 @@ declare global {
       setAutoUpdateEnabled: (enabled: boolean) => Promise<boolean>;
       getAppVersion: () => Promise<string>;
       reload?: () => Promise<void>;
-      checkForUpdates?: () => Promise<{ updateAvailable: boolean; error?: boolean }>;
+      checkForUpdates?: () => Promise<{ updateAvailable: boolean; latestVersion?: string | null; error?: boolean; message?: string }>;
       getUpdateDownloaded?: () => Promise<boolean>;
       onUpdateDownloaded?: (callback: () => void) => void;
     };
@@ -62,9 +62,11 @@ export function DesktopAppSettings() {
     try {
       const result = await window.electronAPI.checkForUpdates();
       if (result.error) {
-        addToast('Could not check for updates', 'error');
+        const msg = result.message ? `Could not check: ${result.message}` : 'Could not check for updates';
+        addToast(msg, 'error');
       } else if (result.updateAvailable) {
-        addToast('Update available — quit and reopen the app to install', 'success');
+        const v = result.latestVersion ? ` (v${result.latestVersion})` : '';
+        addToast(`Update available${v} — quit and reopen the app to install`, 'success');
       } else {
         addToast('You’re up to date', 'success');
       }

@@ -6,6 +6,15 @@ const { autoUpdater } = require('electron-updater');
 // Packaged app = production (no dev tools, load vibeminer.tech). Unpackaged = dev (localhost + dev tools).
 const isDev = !app.isPackaged;
 
+// GitHub API requires a valid User-Agent; otherwise requests can get 403 and no update is found.
+function configureUpdater() {
+  const version = app.getVersion();
+  autoUpdater.requestHeaders = {
+    'User-Agent': `VibeMiner-updater/${version} (${process.platform}; ${process.arch})`,
+    Accept: 'application/vnd.github.v3+json',
+  };
+}
+
 const SETTINGS_FILE = 'settings.json';
 function getSettingsPath() {
   return path.join(app.getPath('userData'), SETTINGS_FILE);
@@ -39,16 +48,22 @@ function scheduleAutoUpdateChecks() {
   autoUpdater.autoInstallOnAppQuit = true;
   autoUpdater.allowPrerelease = false;
 
-  // Check immediately on startup (sync when app starts)
-  runUpdateCheck();
-  // Check again after a short delay so the window is open and any notification is visible
-  setTimeout(() => runUpdateCheck(), 5000);
+  // First check after a short delay so app and network are ready (avoids silent failures on cold start)
+  setTimeout(() => runUpdateCheck(), 2000);
+  // Second check after window has been open a bit so any notification is visible
+  setTimeout(() => runUpdateCheck(), 8000);
+  // Then every 4 hours
   updateCheckInterval = setInterval(runUpdateCheck, 4 * 60 * 60 * 1000);
 }
 
 function setupUpdaterEvents() {
   autoUpdater.on('error', (err) => console.error('[VibeMiner] Updater error:', err?.message || err));
-  autoUpdater.on('update-available', () => console.info('[VibeMiner] Update available, downloading…'));
+  autoUpdater.on('update-available', (info) => {
+    console.info('[VibeMiner] Update available:', info?.version || 'unknown', '- downloading…');
+  });
+  autoUpdater.on('update-not-available', (info) => {
+    console.info('[VibeMiner] No update (current:', app.getVersion(), ', latest:', info?.version || 'unknown', ')');
+  });
   autoUpdater.on('update-downloaded', () => {
     updateDownloaded = true;
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update-downloaded');
@@ -141,6 +156,7 @@ function createWindow() {
 
 app.whenReady().then(() => {
   if (!isDev) {
+    configureUpdater();
     setupUpdaterEvents();
     scheduleAutoUpdateChecks();
   }
@@ -158,10 +174,17 @@ app.whenReady().then(() => {
   ipcMain.handle('checkForUpdates', async () => {
     try {
       const result = await autoUpdater.checkForUpdatesAndNotify();
-      return { updateAvailable: !!(result && result.updateInfo) };
+      const updateAvailable = !!(result && result.updateInfo);
+      const latestVersion = result?.updateInfo?.version || null;
+      if (updateAvailable) {
+        console.info('[VibeMiner] Update available:', latestVersion);
+      } else {
+        console.info('[VibeMiner] Check complete. Current:', app.getVersion(), 'Latest:', latestVersion || 'same');
+      }
+      return { updateAvailable, latestVersion, error: false };
     } catch (err) {
       console.error('[VibeMiner] Manual update check failed:', err?.message || err);
-      return { updateAvailable: false, error: true };
+      return { updateAvailable: false, latestVersion: null, error: true, message: err?.message || String(err) };
     }
   });
   ipcMain.handle('getUpdateDownloaded', () => updateDownloaded);
