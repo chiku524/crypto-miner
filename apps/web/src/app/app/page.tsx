@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { useIsDesktop } from '@/hooks/useIsDesktop';
+import { DesktopNav } from '@/components/DesktopNav';
 
 const NAV_ITEMS = [
   { href: '/dashboard', label: 'Mining dashboard', description: 'Choose a network and start mining', icon: '◇' },
@@ -45,7 +46,9 @@ export default function AppLauncherPage() {
   }
 
   return (
-    <main className="min-h-screen bg-surface-950 bg-grid flex flex-col items-center justify-center px-4 py-12">
+    <main className="min-h-screen bg-surface-950 bg-grid">
+      {isDesktop && <DesktopNav />}
+      <div className={`flex flex-col items-center justify-center px-4 py-12 min-h-screen ${isDesktop ? 'pt-20' : ''}`}>
       <motion.div
         initial={{ opacity: 0, y: 8 }}
         animate={{ opacity: 1, y: 0 }}
@@ -107,6 +110,7 @@ export default function AppLauncherPage() {
           This launcher is also available in the desktop app.
         </p>
       )}
+      </div>
     </main>
   );
 }

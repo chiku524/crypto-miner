@@ -97,11 +97,12 @@ export type DesktopDownloadSource = 'github-api' | 'fallback';
 /**
  * Fetches releases and returns download URLs from the release with the **highest semantic version**
  * (e.g. v1.0.8), not GitHub's "latest" which is by publish date and can be an older version.
- * Also returns source so the API route can set X-Download-Source for debugging.
+ * Also returns source and latestTag for debugging / display.
  */
 export async function getLatestDesktopDownloadUrls(): Promise<{
   urls: DesktopDownloadUrls;
   source: DesktopDownloadSource;
+  latestTag?: string;
 }> {
   const repo = getRepoFromEnv();
   const token = getGitHubToken();
@@ -109,8 +110,9 @@ export async function getLatestDesktopDownloadUrls(): Promise<{
 
   try {
     const res = await fetch(
-      `https://api.github.com/repos/${repo}/releases?per_page=30`,
+      `https://api.github.com/repos/${repo}/releases?per_page=100`,
       {
+        cache: 'no-store',
         headers: {
           Accept: 'application/vnd.github+json',
           'X-GitHub-Api-Version': '2022-11-28',
@@ -137,7 +139,7 @@ export async function getLatestDesktopDownloadUrls(): Promise<{
       const mac = assets.find((a) => a.name.endsWith('.dmg'))?.browser_download_url ?? null;
       const linux = assets.find((a) => a.name.endsWith('.AppImage'))?.browser_download_url ?? null;
       if (win || mac || linux) {
-        return { urls: { win, mac, linux }, source: 'github-api' };
+        return { urls: { win, mac, linux }, source: 'github-api', latestTag: release.tag_name };
       }
     }
   } catch {

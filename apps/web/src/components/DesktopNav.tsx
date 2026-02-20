@@ -5,9 +5,8 @@ import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 /**
- * Minimal navigation for the desktop app: no web navbar, just a simple bar
- * with Home, Networks, Pools, Fees, Settings, optional Admin, and Sign out.
- * Used whenever the app is running inside the Electron desktop client.
+ * Minimal navigation for the desktop app: Home, Dashboard, Networks, Settings,
+ * optional Admin, and Sign out. Used when running inside the Electron desktop client.
  */
 export function DesktopNav() {
   const { user, isAdmin, loading, logout } = useAuth();
@@ -30,14 +29,11 @@ export function DesktopNav() {
           <span>VibeMiner</span>
         </Link>
         <div className="flex items-center gap-1 sm:gap-3">
+          <Link href="/dashboard" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
+            Dashboard
+          </Link>
           <Link href="/networks" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
             Networks
-          </Link>
-          <Link href="/pools" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
-            Pools
-          </Link>
-          <Link href="/fees" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
-            Fees
           </Link>
           <Link href="/dashboard/settings" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
             Settings

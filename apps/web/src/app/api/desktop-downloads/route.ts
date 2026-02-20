@@ -8,7 +8,7 @@ import { getLatestDesktopDownloadUrls } from '@/lib/desktop-downloads-api';
  */
 export async function GET() {
   try {
-    const { urls, source } = await getLatestDesktopDownloadUrls();
+    const { urls, source, latestTag } = await getLatestDesktopDownloadUrls();
     const hasAny = urls.win || urls.mac || urls.linux;
     if (!hasAny) {
       return NextResponse.json(
@@ -16,7 +16,8 @@ export async function GET() {
         { status: 502 }
       );
     }
-    return NextResponse.json(urls, {
+    const body = { ...urls, ...(latestTag && { latestTag }) };
+    return NextResponse.json(body, {
       headers: {
         'Cache-Control': 'public, s-maxage=30, stale-while-revalidate=60',
         'X-Download-Source': source,
