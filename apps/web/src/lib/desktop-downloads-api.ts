@@ -14,7 +14,7 @@ import { getCloudflareContext } from '@opennextjs/cloudflare';
 function getCloudflareEnv(): Record<string, unknown> | null {
   try {
     const ctx = getCloudflareContext();
-    const env = ctx?.env as Record<string, unknown> | undefined;
+    const env = ctx?.env as unknown as Record<string, unknown> | undefined;
     return env ?? null;
   } catch {
     return null;
