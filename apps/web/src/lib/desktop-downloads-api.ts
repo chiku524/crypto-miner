@@ -148,23 +148,20 @@ export async function getLatestDesktopDownloadUrls(): Promise<{
     linux: (envStr(env, 'NEXT_PUBLIC_DESKTOP_DOWNLOAD_LINUX') ?? process.env.NEXT_PUBLIC_DESKTOP_DOWNLOAD_LINUX) ?? null,
   };
 
-  const authHeader =
-    token && /^ghp_/.test(token)
-      ? { Authorization: `token ${token}` }
-      : token
-        ? { Authorization: `Bearer ${token}` }
-        : {};
+  const headers: Record<string, string> = {
+    Accept: 'application/vnd.github+json',
+    'X-GitHub-Api-Version': '2022-11-28',
+  };
+  if (token) {
+    headers.Authorization = /^ghp_/.test(token) ? `token ${token}` : `Bearer ${token}`;
+  }
 
   try {
     const res = await fetch(
       `https://api.github.com/repos/${repo}/releases?per_page=100`,
       {
         cache: 'no-store',
-        headers: {
-          Accept: 'application/vnd.github+json',
-          'X-GitHub-Api-Version': '2022-11-28',
-          ...authHeader,
-        },
+        headers,
         next: { revalidate: 0 },
       }
     );

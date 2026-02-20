@@ -1,6 +1,6 @@
 'use client';
 
-import { Suspense, useState, useEffect } from 'react';
+import { Suspense, useState, useLayoutEffect } from 'react';
 import dynamic from 'next/dynamic';
 import { Nav } from '@/components/Nav';
 import { Hero } from '@/components/Hero';
@@ -53,7 +53,7 @@ export default function Home() {
   const [mounted, setMounted] = useState(false);
   const isDesktop = useIsDesktop();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     setMounted(true);
   }, []);
 

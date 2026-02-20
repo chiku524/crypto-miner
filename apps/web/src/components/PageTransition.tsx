@@ -15,10 +15,8 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
     }
   }, [pathname]);
 
-  const isHome = pathname === '/';
-  // Skip fade for app/dashboard routes so navigation never shows a blank screen
-  const isAppOrDashboard = pathname === '/app' || pathname.startsWith('/dashboard');
-  const skipInitialFade = reduceMotion || isHome || isAppOrDashboard;
+  // Always skip initial fade so the incoming page is never painted at opacity 0 (avoids blank on nav to home/app).
+  const skipInitialFade = true;
 
   return (
     <AnimatePresence mode="wait">
