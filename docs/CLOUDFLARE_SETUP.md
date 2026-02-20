@@ -180,11 +180,11 @@ Every page load and client navigation that needs server data goes through the sa
 
 ## 12. Download page (/download)
 
-The **/download** page shows Windows, macOS, and Linux desktop installers. It tries to load the latest links from the **GitHub Releases API**. If that request fails (e.g. rate limit or missing token), it falls back to the URLs in **wrangler.toml** [vars]: `NEXT_PUBLIC_DESKTOP_DOWNLOAD_WIN`, `_MAC`, `_LINUX`. Those are set to the latest release (e.g. v1.0.15) so the page always shows three download options after deploy.
+The **/download** page shows Windows, macOS, and Linux desktop installers. Links use GitHub’s **redirect URLs** (`/releases/latest/download/AssetName`), so no API or token is needed. The **release-desktop** workflow uploads assets with fixed names (`VibeMiner-Setup-latest.exe`, `VibeMiner-latest-arm64.dmg`, `VibeMiner-latest.AppImage`), so every new tag + release automatically becomes the target of these links.
 
-**For the download link to update automatically when you push a new release:** To use the live GitHub API so the page always shows the newest release without editing wrangler.toml, add a **secret** in the Cloudflare dashboard (Workers & Pages → vibeminer → Settings → Variables and secrets (Encrypt)): **GITHUB_TOKEN** with a [personal access token](https://github.com/settings/tokens) (no scopes required for public repo). Use variable name **GITHUB_TOKEN** exactly. Redeploy the Worker after adding the secret so the download page uses the API instead of the wrangler fallback. The deploy workflow uses `--keep-vars` so dashboard secrets are not removed. The server calls the API with a higher rate limit and returns the latest release’s installers.
+**To get the links working:** Push a new tag so the release workflow runs and attaches the "latest" assets. For the *current* latest release, run **Release desktop app** manually (Actions → Release desktop app → Run workflow, enter the existing tag) to add those assets. (No secret needed—links use GitHub redirect URLs.)
 
-**If links still show an old version:** open DevTools → Network → request to `https://vibeminer.tech/api/desktop-downloads` and check the response header **X-Download-Source**: `github-api` means the API returned the latest release; `fallback` means the Worker fell back to wrangler.toml. If you see **githubStatus: 403**, check the response body **githubMessage** (or header **X-GitHub-Message**): e.g. "API rate limit exceeded" (wait or use a token with higher limit), or "Resource not accessible by integration" (if using a fine-grained PAT, grant **Metadata: read** for the repo and ensure the token has access to that repository; or use a classic PAT with no scopes for public repos). The response body includes **source**, **latestTag**, and **tokenPresent** for debugging.
+**If links 404:** Ensure the release has the "latest" assets (run the release workflow for the current tag once; see above).
 
 ## Admin and user wallets
 

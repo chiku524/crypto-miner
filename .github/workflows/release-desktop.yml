@@ -184,6 +184,16 @@ jobs:
           path: artifacts
           merge-multiple: true
 
+      # Copy versioned assets to fixed "latest" names so the website can use
+      # /releases/latest/download/VibeMiner-Setup-latest.exe (no API or token needed).
+      - name: Add latest redirect assets
+        run: |
+          cd artifacts
+          for f in VibeMiner-Setup-*.exe; do [ -f "$f" ] && cp "$f" VibeMiner-Setup-latest.exe && break; done
+          for f in VibeMiner-*-arm64.dmg; do [ -f "$f" ] && cp "$f" VibeMiner-latest-arm64.dmg && break; done
+          for f in VibeMiner-*.AppImage; do [ -f "$f" ] && cp "$f" VibeMiner-latest.AppImage && break; done
+          ls -la
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
