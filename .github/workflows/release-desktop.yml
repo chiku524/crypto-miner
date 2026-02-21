@@ -186,7 +186,7 @@ jobs:
 
       # Copy versioned assets to fixed "latest" names so the website can use
       # /releases/latest/download/VibeMiner-Setup-latest.exe (no API or token needed).
-      # download-artifact with merge-multiple puts each artifact in a subdir (desktop-windows, etc.)
+      # Note: This job runs from the tag ref; the tag must point to a commit that has this fix (e.g. create a new tag from main).
       # electron-builder produces "VibeMiner Setup 1.0.23.exe" (space); we need -latest and versioned (VibeMiner-Setup-1.0.23.exe) for API.
       - name: Add latest redirect assets
         env:
@@ -194,8 +194,14 @@ jobs:
         run: |
           VER="${VERSION#v}"
           cd artifacts
+          echo "Artifact layout:"
+          find . -type f \( -name "*.exe" -o -name "*.dmg" -o -name "*.AppImage" \) | head -20
           win_exe=$(find . -type f \( -name "VibeMiner-Setup-*.exe" -o -name "VibeMiner Setup *.exe" \) | head -1)
+          if [ -z "$win_exe" ]; then
+            win_exe=$(find . -type f -name "*.exe" | head -1)
+          fi
           if [ -z "$win_exe" ]; then echo "No Windows exe found"; exit 1; fi
+          echo "Using Windows exe: $win_exe"
           cp "$win_exe" "VibeMiner-Setup-latest.exe"
           cp "$win_exe" "VibeMiner-Setup-${VER}.exe"
           for f in $(find . -name "VibeMiner-*-arm64.dmg" -type f); do cp "$f" VibeMiner-latest-arm64.dmg && break; done
