@@ -5,6 +5,7 @@ import { motion, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
 import { getMainnetNetworksListed, getDevnetNetworks } from '@vibeminer/shared';
 import type { BlockchainNetwork } from '@vibeminer/shared';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 
 type NetworkWithMeta = BlockchainNetwork & { listedAt?: string };
 
@@ -42,7 +43,7 @@ const item = {
   show: { opacity: 1, y: 0 },
 };
 
-function NetworkCard({ network, isNew }: { network: BlockchainNetwork; isNew?: boolean }) {
+function NetworkCard({ network, isNew, requestServiceHref = '/#request-service' }: { network: BlockchainNetwork; isNew?: boolean; requestServiceHref?: string }) {
   const isLive = network.status === 'live';
   const isRequest = network.status === 'requested';
   const isDevnet = network.environment === 'devnet';
@@ -119,7 +120,7 @@ function NetworkCard({ network, isNew }: { network: BlockchainNetwork; isNew?: b
         )}
         {isRequest && (
           <Link
-            href="/#request-service"
+            href={requestServiceHref}
             className="rounded-lg bg-accent-amber/20 px-3 py-1.5 text-sm font-medium text-accent-amber transition hover:bg-accent-amber/30"
           >
             Request service
@@ -140,6 +141,7 @@ function NetworkGrid({
   searchQuery,
   onClearSearch,
   reducedMotion,
+  requestServiceHref,
 }: {
   networks: NetworkWithMeta[];
   title: string;
@@ -148,6 +150,7 @@ function NetworkGrid({
   searchQuery?: string;
   onClearSearch?: () => void;
   reducedMotion?: boolean;
+  requestServiceHref?: string;
 }) {
   const isEmpty = networks.length === 0;
   const hasSearch = !!searchQuery?.trim();
@@ -199,6 +202,7 @@ function NetworkGrid({
                 key={`${network.environment}-${network.id}`}
                 network={network}
                 isNew={!!isNew}
+                requestServiceHref={requestServiceHref}
               />
             );
           })}
@@ -226,6 +230,8 @@ function getInitialDevnet(): NetworkWithMeta[] {
 
 export function NetworksShowcase() {
   const reduced = useReducedMotion() ?? false;
+  const isDesktop = useIsDesktop();
+  const requestServiceHref = isDesktop ? '/networks' : '/#request-service';
   const [searchQuery, setSearchQuery] = useState('');
   const [mainnetNetworks, setMainnetNetworks] = useState<NetworkWithMeta[]>(getInitialMainnet);
   const [devnetNetworks, setDevnetNetworks] = useState<NetworkWithMeta[]>(getInitialDevnet);
@@ -296,6 +302,7 @@ export function NetworksShowcase() {
           searchQuery={searchQuery}
           onClearSearch={() => setSearchQuery('')}
           reducedMotion={reduced}
+          requestServiceHref={requestServiceHref}
         />
 
         <div className="mt-16 border-t border-white/5 pt-16">
@@ -307,6 +314,7 @@ export function NetworksShowcase() {
             searchQuery={searchQuery}
             onClearSearch={() => setSearchQuery('')}
             reducedMotion={reduced}
+            requestServiceHref={requestServiceHref}
           />
         </div>
       </div>

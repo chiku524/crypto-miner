@@ -1,23 +1,19 @@
+'use client';
+
 import Link from 'next/link';
 import { Nav } from '@/components/Nav';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { site } from '@/lib/site';
-import type { Metadata } from 'next';
-
-const base = site.baseUrl.replace(/\/$/, '');
-
-export const metadata: Metadata = {
-  title: 'Mining pools',
-  description: 'How VibeMiner connects you to mining pools. One-click mining, no config. Start from the dashboard.',
-  alternates: { canonical: `${base}/pools` },
-};
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 
 export default function PoolsPage() {
+  const isDesktop = useIsDesktop();
+  const homeHref = isDesktop ? '/app' : '/';
+
   return (
     <main className="min-h-screen bg-surface-950 bg-grid">
       <Nav />
       <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-        <Breadcrumbs crumbs={[{ label: 'Home', href: '/' }, { label: 'Mining pools' }]} />
+        <Breadcrumbs crumbs={[{ label: 'Home', href: homeHref }, { label: 'Mining pools' }]} />
         <h1 className="mt-6 font-display text-3xl font-bold tracking-tight text-white">
           Mining pools
         </h1>

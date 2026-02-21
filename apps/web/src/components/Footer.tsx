@@ -14,8 +14,8 @@ export function Footer() {
           VibeMiner <span className="text-gray-600">by nico.builds</span>
         </div>
         <div className="flex flex-wrap justify-center gap-6 text-sm text-gray-500 sm:justify-end">
-          <Link href="/#networks" className="transition hover:text-white">Networks</Link>
-          <Link href="/#how-it-works" className="transition hover:text-white">How it works</Link>
+          <Link href={isDesktop ? '/networks' : '/#networks'} className="transition hover:text-white">Networks</Link>
+          <Link href={isDesktop ? '/networks' : '/#how-it-works'} className="transition hover:text-white">How it works</Link>
           {!isDesktop && <Link href="/download" className="transition hover:text-white">Download</Link>}
           <Link href="/fees" className="transition hover:text-white">Fees</Link>
           <Link href="/dashboard" className="transition hover:text-white">Dashboard</Link>

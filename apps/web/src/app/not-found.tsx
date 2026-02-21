@@ -1,6 +1,12 @@
+'use client';
+
 import Link from 'next/link';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 
 export default function NotFound() {
+  const isDesktop = useIsDesktop();
+  const homeHref = isDesktop ? '/app' : '/';
+
   return (
     <main className="flex min-h-screen flex-col items-center justify-center bg-surface-950 bg-grid px-4">
       <span className="text-6xl opacity-30" aria-hidden="true">◇</span>
@@ -10,10 +16,10 @@ export default function NotFound() {
       </p>
       <div className="mt-8 flex flex-wrap justify-center gap-4">
         <Link
-          href="/"
+          href={homeHref}
           className="rounded-xl bg-accent-cyan/20 px-6 py-2.5 text-sm font-medium text-accent-cyan transition hover:bg-accent-cyan/30"
         >
-          Back home
+          {isDesktop ? 'App launcher' : 'Back home'}
         </Link>
         <Link
           href="/dashboard"

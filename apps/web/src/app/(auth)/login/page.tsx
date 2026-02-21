@@ -3,6 +3,7 @@
 import { Suspense } from 'react';
 import { LoginForm } from './LoginForm';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 
 function LoginFallback() {
   return (
@@ -19,10 +20,12 @@ function LoginFallback() {
 }
 
 export default function LoginPage() {
+  const isDesktop = useIsDesktop();
+  const homeHref = isDesktop ? '/app' : '/';
   return (
     <main className="flex min-h-screen flex-col items-center bg-surface-950 bg-grid px-4 py-24">
       <div className="w-full max-w-sm">
-        <Breadcrumbs crumbs={[{ label: 'Home', href: '/' }, { label: 'Sign in' }]} />
+        <Breadcrumbs crumbs={[{ label: 'Home', href: homeHref }, { label: 'Sign in' }]} />
       </div>
       <div className="mt-8 flex w-full max-w-sm flex-1 justify-center">
         <Suspense fallback={<LoginFallback />}>

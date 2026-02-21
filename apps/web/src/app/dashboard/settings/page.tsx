@@ -72,7 +72,7 @@ export default function SettingsPage() {
       {!isDesktop && (
         <header className="sticky top-0 z-10 border-b border-white/5 bg-surface-950/90 backdrop-blur-xl">
           <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4 sm:px-6">
-            <Link href="/" className="flex items-center gap-2 font-display text-lg font-semibold">
+            <Link href={isDesktop ? '/app' : '/'} className="flex items-center gap-2 font-display text-lg font-semibold">
               <span className="text-xl" aria-hidden="true">◇</span>
               <span className="bg-gradient-to-r from-accent-cyan to-emerald-400 bg-clip-text text-transparent">
                 VibeMiner
@@ -82,7 +82,7 @@ export default function SettingsPage() {
               <Link href="/dashboard" className="text-sm text-gray-400 transition hover:text-white">
                 Dashboard
               </Link>
-              <Link href="/" className="text-sm text-gray-400 transition hover:text-white">
+              <Link href={isDesktop ? '/app' : '/'} className="text-sm text-gray-400 transition hover:text-white">
                 ← Back home
               </Link>
             </div>

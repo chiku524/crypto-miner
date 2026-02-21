@@ -1,18 +1,10 @@
+'use client';
+
 import { FEE_CONFIG, formatWithdrawalFee } from '@vibeminer/shared';
 import { Nav } from '@/components/Nav';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
-import { site } from '@/lib/site';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { PLATFORM_WALLET } from '@/lib/platform-wallet';
-import type { Metadata } from 'next';
-
-const base = site.baseUrl.replace(/\/$/, '');
-
-export const metadata: Metadata = {
-  title: 'Fees & transparency',
-  description: 'Network listing fees and miner withdrawal fees. Transparent pricing. VibeMiner by nico.builds.',
-  alternates: { canonical: `${base}/fees` },
-  openGraph: { url: `${base}/fees`, title: 'Fees & transparency | VibeMiner', description: 'Transparent fees for network listings and miner withdrawals. No hidden charges.' },
-};
 
 const feesJsonLd = {
   '@context': 'https://schema.org',
@@ -46,12 +38,15 @@ const feesJsonLd = {
 };
 
 export default function FeesPage() {
+  const isDesktop = useIsDesktop();
+  const homeHref = isDesktop ? '/app' : '/';
+
   return (
     <main className="min-h-screen bg-surface-950 bg-grid">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(feesJsonLd) }} />
       <Nav />
       <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
-        <Breadcrumbs crumbs={[{ label: 'Home', href: '/' }, { label: 'Fees & transparency' }]} />
+        <Breadcrumbs crumbs={[{ label: 'Home', href: homeHref }, { label: 'Fees & transparency' }]} />
         <h1 className="mt-6 font-display text-3xl font-bold tracking-tight text-white">
           Fees & transparency
         </h1>

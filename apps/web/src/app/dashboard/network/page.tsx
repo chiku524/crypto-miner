@@ -92,7 +92,7 @@ export default function NetworkDashboardPage() {
           </p>
           <div className="mt-6 flex flex-wrap gap-4">
             <Link
-              href="/#networks"
+              href={isDesktop ? '/networks' : '/#networks'}
               className="rounded-xl border border-white/10 px-4 py-2 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white"
             >
               View all networks

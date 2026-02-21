@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter, useSearchParams } from 'next/navigation';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { login } from '@/lib/auth';
 
 function getReturnTo(searchParams: ReturnType<typeof useSearchParams>): string {
@@ -21,7 +22,9 @@ export function LoginForm() {
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const searchParams = useSearchParams();
+  const isDesktop = useIsDesktop();
   const returnTo = useMemo(() => getReturnTo(searchParams), [searchParams]);
+  const homeHref = isDesktop ? '/app' : '/';
 
   const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -56,7 +59,7 @@ export function LoginForm() {
       animate={{ opacity: 1, y: 0 }}
       className="w-full max-w-sm rounded-2xl border border-white/10 bg-surface-900/50 p-8"
     >
-      <Link href="/" className="mb-6 inline-flex items-center gap-2 font-display text-lg font-semibold text-gray-300 hover:text-white">
+      <Link href={homeHref} className="mb-6 inline-flex items-center gap-2 font-display text-lg font-semibold text-gray-300 hover:text-white">
         <span className="text-xl" aria-hidden="true">◇</span>
         VibeMiner
       </Link>
