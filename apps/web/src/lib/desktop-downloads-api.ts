@@ -79,8 +79,12 @@ export async function getLatestDesktopDownloadUrls(): Promise<{
   const versionedBase = (tag: string) => `https://github.com/${repo}/releases/download/${tag}`;
 
   try {
+    // GitHub API requires User-Agent; without it we get 403 and fall back to -latest URLs (which 404 on current release).
     const res = await fetch(`https://api.github.com/repos/${repo}/releases/latest`, {
-      headers: { Accept: 'application/vnd.github.v3+json' },
+      headers: {
+        Accept: 'application/vnd.github.v3+json',
+        'User-Agent': 'VibeMiner-Download-Page (https://vibeminer.tech)',
+      },
       next: { revalidate: 60 },
     });
     if (res.ok) {
