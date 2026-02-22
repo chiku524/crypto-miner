@@ -3,6 +3,7 @@
 import { FEE_CONFIG, formatWithdrawalFee } from '@vibeminer/shared';
 import { Nav } from '@/components/Nav';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
+import { DesktopNav } from '@/components/DesktopNav';
 import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { PLATFORM_WALLET } from '@/lib/platform-wallet';
 
@@ -44,8 +45,8 @@ export default function FeesPage() {
   return (
     <main className="min-h-screen bg-surface-950 bg-grid">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(feesJsonLd) }} />
-      <Nav />
-      <div className="mx-auto max-w-2xl px-4 py-16 sm:px-6">
+      {isDesktop ? <DesktopNav /> : <Nav />}
+      <div className={`mx-auto max-w-2xl px-4 sm:px-6 ${isDesktop ? 'pt-14 py-16' : 'py-16'}`}>
         <Breadcrumbs crumbs={[{ label: 'Home', href: homeHref }, { label: 'Fees & transparency' }]} />
         <h1 className="mt-6 font-display text-3xl font-bold tracking-tight text-white">
           Fees & transparency

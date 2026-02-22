@@ -54,7 +54,14 @@ export default function AdminDashboardPage() {
   }
 
   if (!isAdmin) {
-    return null;
+    return (
+      <main className="min-h-screen bg-surface-950 bg-grid">
+        {isDesktop && <DesktopNav />}
+        <div className={`flex flex-1 flex-col items-center justify-center px-4 ${isDesktop ? 'pt-14' : ''}`} style={{ minHeight: 'calc(100vh - 4rem)' }}>
+          <p className="text-sm text-gray-400">Redirecting…</p>
+        </div>
+      </main>
+    );
   }
 
   return (
