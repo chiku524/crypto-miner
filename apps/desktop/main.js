@@ -146,7 +146,28 @@ function setupUpdaterEvents() {
   autoUpdater.on('update-downloaded', () => {
     updateDownloaded = true;
     if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('update-downloaded');
+    runAutoInstallIfReady();
   });
+}
+
+const AUTO_INSTALL_DELAY_MS = 2500;
+
+/** If auto-update is on and an update is already downloaded, show update window and quit-and-install. */
+function runAutoInstallIfReady() {
+  if (!loadSettings().autoUpdate || !updateDownloaded) return;
+  const win = createUpdateWindow(getIconPath());
+  win.webContents.once('did-finish-load', () => {
+    win.webContents.executeJavaScript(
+      "document.getElementById('update-status').textContent = 'Installing update… Restarting.';"
+    ).catch(() => {});
+  });
+  setTimeout(() => {
+    try {
+      autoUpdater.quitAndInstall(false, true);
+    } catch (e) {
+      console.error('[VibeMiner] quitAndInstall failed:', e?.message || e);
+    }
+  }, AUTO_INSTALL_DELAY_MS);
 }
 
 const FAILED_LOAD_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VibeMiner</title><style>body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0c0e12;color:#e5e7eb;font-family:system-ui,sans-serif;text-align:center;padding:1.5rem;}h1{font-size:1.25rem;margin-bottom:0.5rem;}p{color:#9ca3af;margin-bottom:1.5rem;}button{background:#22d3ee;color:#0c0e12;border:none;padding:0.75rem 1.5rem;border-radius:0.75rem;font-weight:600;cursor:pointer;}button:hover{filter:brightness(1.1);}</style></head><body><div><h1>Can&rsquo;t connect</h1><p>Check your internet connection, then try again.</p><button type="button" id="retry">Retry</button></div><script>document.getElementById("retry").onclick=function(){if(typeof window.electronAPI!=="undefined"&&window.electronAPI.reload){window.electronAPI.reload();}else{location.reload();}}</script></body></html>`;
@@ -316,8 +337,12 @@ function createWindow() {
         showWhenReady();
       }
       if (!isDev) {
-        runStartupUpdateCheck();
-        runUpdateCheck();
+        if (updateDownloaded) {
+          runAutoInstallIfReady();
+        } else {
+          runStartupUpdateCheck();
+          runUpdateCheck();
+        }
       }
     }
   });

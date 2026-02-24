@@ -7,14 +7,14 @@ function getIsDesktop(): boolean {
   return window.electronAPI?.isDesktop === true;
 }
 
+let hasEverBeenDesktop = false;
+
 /** Once we've seen desktop in this session, keep returning true so layouts don't flip to web on remount. */
 function getIsDesktopLatched(): boolean {
   if (typeof window === 'undefined') return false;
-  const key = '__vibeminer_desktop_latched';
-  const w = window as Window & { [key: string]: boolean };
-  if (w[key] === true) return true;
+  if (hasEverBeenDesktop) return true;
   if (getIsDesktop()) {
-    w[key] = true;
+    hasEverBeenDesktop = true;
     return true;
   }
   return false;
