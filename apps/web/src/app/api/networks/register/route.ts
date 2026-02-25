@@ -86,8 +86,6 @@ export async function POST(request: Request) {
       }
     }
 
-    const { DB } = await getEnv();
-
     const id = network.id + (network.environment === 'devnet' ? '-devnet' : '');
     const existing = await DB.prepare(
       'select id from network_listings where id = ?'
