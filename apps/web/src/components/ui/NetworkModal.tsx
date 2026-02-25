@@ -2,7 +2,9 @@
 
 import { useEffect, useRef } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
+import Link from 'next/link';
 import type { BlockchainNetwork } from '@vibeminer/shared';
+import { INCENTIVIZED_TESTNET_IDS } from '@vibeminer/shared';
 
 interface NetworkModalProps {
   network: BlockchainNetwork | null;
@@ -103,6 +105,11 @@ export function NetworkModal({ network, onClose }: NetworkModalProps) {
                     Devnet
                   </span>
                 )}
+                {INCENTIVIZED_TESTNET_IDS.includes(network.id) && (
+                  <span className="ml-2 inline-block rounded-full bg-amber-500/20 px-2.5 py-0.5 text-xs font-medium text-amber-300">
+                    Incentivized testnet
+                  </span>
+                )}
               </div>
             </div>
             <button
@@ -135,7 +142,7 @@ export function NetworkModal({ network, onClose }: NetworkModalProps) {
                 <p className="font-mono text-white">{network.minPayout}</p>
               </div>
             )}
-            {network.website && (
+          {network.website && (
               <a
                 href={network.website}
                 target="_blank"
@@ -146,6 +153,16 @@ export function NetworkModal({ network, onClose }: NetworkModalProps) {
               </a>
             )}
           </div>
+          {network.status === 'live' && (
+            <div className="mt-4 pt-4 border-t border-white/5">
+              <Link
+                href={`/dashboard?env=${network.environment}&network=${network.id}`}
+                className="inline-block rounded-xl bg-accent-cyan/20 px-4 py-2 text-sm font-medium text-accent-cyan transition hover:bg-accent-cyan/30"
+              >
+                Start mining →
+              </Link>
+            </div>
+          )}
         </motion.div>
       </motion.div>
       )}

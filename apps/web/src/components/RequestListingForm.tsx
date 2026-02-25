@@ -76,6 +76,7 @@ export function RequestListingForm() {
       const res = await fetch('/api/networks/register', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 

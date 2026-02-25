@@ -61,7 +61,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
     setShowRecovery(false);
   }, [hasContent, pathname]);
 
-  // mode="wait": old page exits fully before new page mounts.
+  // No exit animation: avoid a full-screen dark layer (exiting page's wrapper) covering the next page.
   const skipInitialFade = true;
 
   return (
@@ -70,7 +70,7 @@ export function PageTransition({ children }: { children: React.ReactNode }) {
         key={pathname}
         initial={skipInitialFade ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
-        exit={reduceMotion ? undefined : { opacity: 0 }}
+        exit={undefined}
         transition={reduceMotion ? { duration: 0 } : { duration: 0.15, ease: 'easeOut' }}
         className="min-h-screen w-full bg-surface-950"
       >

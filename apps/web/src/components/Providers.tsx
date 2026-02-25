@@ -6,6 +6,7 @@ import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { PageTransition } from '@/components/PageTransition';
 import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { DesktopUpdateToastListener } from '@/components/DesktopUpdateToastListener';
+import { DesktopUpdateOverlay } from '@/components/DesktopUpdateOverlay';
 
 export function Providers({ children }: { children: React.ReactNode }) {
   return (
@@ -13,6 +14,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
       <AuthProvider>
         <ToastProvider>
           <DesktopUpdateToastListener />
+          <DesktopUpdateOverlay />
           <OnboardingProvider>
             <PageTransition>{children}</PageTransition>
           </OnboardingProvider>

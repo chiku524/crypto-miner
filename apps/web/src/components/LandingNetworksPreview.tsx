@@ -1,16 +1,16 @@
 'use client';
 
 import Link from 'next/link';
-import { getMainnetNetworksListed } from '@vibeminer/shared';
+import { getMainnetNetworksListed, getDevnetNetworks } from '@vibeminer/shared';
 import type { BlockchainNetwork } from '@vibeminer/shared';
 
 const PREVIEW_COUNT = 4;
 
-function MiniNetworkCard({ network }: { network: BlockchainNetwork }) {
+function MiniNetworkCard({ network, env }: { network: BlockchainNetwork; env: 'mainnet' | 'devnet' }) {
   const isLive = network.status === 'live';
   return (
     <Link
-      href={`/dashboard?env=mainnet&network=${network.id}`}
+      href={`/dashboard?env=${env}&network=${network.id}`}
       className="block rounded-xl border border-white/5 bg-surface-900/50 p-4 transition hover:border-accent-cyan/20 hover:bg-surface-850/80"
     >
       <div className="flex items-center gap-3">
@@ -32,7 +32,8 @@ function MiniNetworkCard({ network }: { network: BlockchainNetwork }) {
 }
 
 export function LandingNetworksPreview() {
-  const networks = getMainnetNetworksListed().slice(0, PREVIEW_COUNT);
+  const mainnet = getMainnetNetworksListed().slice(0, PREVIEW_COUNT);
+  const boing = getDevnetNetworks().find((n) => n.id === 'boing-devnet');
 
   return (
     <section className="relative border-t border-white/5 py-16">
@@ -43,9 +44,21 @@ export function LandingNetworksPreview() {
         <p className="mt-2 text-gray-400 text-center max-w-2xl mx-auto">
           Mine on mainnet or devnet. We connect you to pools—no config. Browse all networks or learn how pools work.
         </p>
+        {boing && (
+          <div className="mt-8 mx-auto max-w-xl rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 text-center">
+            <p className="text-sm text-amber-200 font-medium">Incentivized testnet</p>
+            <p className="mt-0.5 text-xs text-gray-400">Try Boing: run a validator or full node with one click.</p>
+            <Link
+              href="/dashboard?env=devnet&network=boing-devnet"
+              className="mt-3 inline-block rounded-xl bg-amber-500/20 px-4 py-2 text-sm font-medium text-amber-300 transition hover:bg-amber-500/30"
+            >
+              Start Boing testnet →
+            </Link>
+          </div>
+        )}
         <div className="mt-10 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {networks.map((network) => (
-            <MiniNetworkCard key={network.id} network={network} />
+          {mainnet.map((network) => (
+            <MiniNetworkCard key={network.id} network={network} env="mainnet" />
           ))}
         </div>
         <div className="mt-8 flex flex-wrap items-center justify-center gap-4">

@@ -4,6 +4,10 @@ import {
   verifyPassword,
   createSession,
   sessionCookieHeader,
+  validateEmail,
+  validatePasswordLength,
+  MIN_PASSWORD_LEN,
+  MAX_PASSWORD_LEN,
 } from '@/lib/auth-server';
 
 const SERVICE_UNAVAILABLE_MESSAGE =
@@ -16,6 +20,15 @@ export async function POST(request: Request) {
 
     if (!email || !password) {
       return NextResponse.json({ error: 'Missing email or password' }, { status: 400 });
+    }
+    if (!validateEmail(email)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+    }
+    if (!validatePasswordLength(password)) {
+      return NextResponse.json(
+        { error: `Password must be ${MIN_PASSWORD_LEN}–${MAX_PASSWORD_LEN} characters` },
+        { status: 400 }
+      );
     }
 
     let env: Awaited<ReturnType<typeof getEnv>>;

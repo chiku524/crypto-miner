@@ -1,21 +1,28 @@
 'use client';
 
 import Link from 'next/link';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 /**
  * Minimal navigation for the desktop app: Home, Dashboard, Networks, Settings,
- * optional Admin, and Sign out. Used when running inside the Electron desktop client.
+ * optional Admin, Open in browser, and Sign out. Used when running inside the Electron desktop client.
  */
 export function DesktopNav() {
   const { user, isAdmin, loading, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   async function handleSignOut() {
     await logout();
     router.push('/login');
     router.refresh();
+  }
+
+  function handleOpenInBrowser() {
+    if (typeof window === 'undefined' || !window.electronAPI?.openExternal) return;
+    const url = window.location.origin + (pathname || '') + window.location.search;
+    window.electronAPI.openExternal(url);
   }
 
   return (
@@ -27,6 +34,9 @@ export function DesktopNav() {
         >
           <span className="text-lg" aria-hidden="true">◇</span>
           <span>VibeMiner</span>
+          <span className="rounded bg-white/10 px-1.5 py-0.5 text-xs font-medium text-gray-400">
+            Desktop
+          </span>
         </Link>
         <div className="flex items-center gap-1 sm:gap-3">
           <Link href="/dashboard" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
@@ -35,9 +45,26 @@ export function DesktopNav() {
           <Link href="/networks" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
             Networks
           </Link>
+          <Link href="/how-mining-works" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
+            How mining works
+          </Link>
+          <Link href="/pools" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
+            Pools
+          </Link>
+          <Link href="/fees" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
+            Fees
+          </Link>
           <Link href="/dashboard/settings" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
             Settings
           </Link>
+          <button
+            type="button"
+            onClick={handleOpenInBrowser}
+            className="rounded px-2.5 py-1.5 text-sm text-gray-500 transition hover:bg-white/5 hover:text-gray-300"
+            title="Open this page in your default browser"
+          >
+            Open in browser
+          </button>
           {!loading && user && isAdmin && (
             <Link href="/dashboard/admin" className="rounded px-2.5 py-1.5 text-sm text-amber-400/90 transition hover:bg-amber-500/10 hover:text-amber-300">
               Admin
@@ -51,6 +78,11 @@ export function DesktopNav() {
             >
               Sign out
             </button>
+          )}
+          {!loading && !user && (
+            <Link href="/login" className="rounded px-2.5 py-1.5 text-sm text-accent-cyan transition hover:bg-accent-cyan/10">
+              Sign in
+            </Link>
           )}
         </div>
       </nav>

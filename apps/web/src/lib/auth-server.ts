@@ -21,6 +21,28 @@ const ITERATIONS = 100000;
 const SESSION_TTL = 60 * 60 * 24 * 7; // 7 days
 const SESSION_COOKIE = 'vibeminer-session';
 
+const MAX_EMAIL_LEN = 256;
+const MAX_PASSWORD_LEN = 128;
+const MIN_PASSWORD_LEN = 6;
+const MAX_DISPLAY_NAME_LEN = 128;
+const MAX_NETWORK_NAME_LEN = 128;
+const MAX_NETWORK_WEBSITE_LEN = 256;
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+export function validateEmail(email: unknown): email is string {
+  if (typeof email !== 'string') return false;
+  const trimmed = email.trim();
+  return trimmed.length > 0 && trimmed.length <= MAX_EMAIL_LEN && EMAIL_REGEX.test(trimmed);
+}
+
+export function validatePasswordLength(password: unknown): boolean {
+  if (typeof password !== 'string') return false;
+  return password.length >= MIN_PASSWORD_LEN && password.length <= MAX_PASSWORD_LEN;
+}
+
+export { MIN_PASSWORD_LEN, MAX_PASSWORD_LEN, MAX_DISPLAY_NAME_LEN, MAX_NETWORK_NAME_LEN, MAX_NETWORK_WEBSITE_LEN };
+
 export type AccountType = 'user' | 'network';
 
 export interface User {
@@ -70,7 +92,7 @@ export function sessionCookieHeader(token: string, maxAge: number = SESSION_TTL)
 }
 
 export function clearSessionCookie(): string {
-  return `${SESSION_COOKIE}=; Path=/; HttpOnly; Max-Age=0`;
+  return `${SESSION_COOKIE}=; Path=/; HttpOnly; Secure; SameSite=Lax; Max-Age=0`;
 }
 
 let _env: EnvBindings | null = null;

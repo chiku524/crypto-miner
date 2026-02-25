@@ -1,15 +1,38 @@
 import { NextResponse } from 'next/server';
 import { parseNetwork, FEE_CONFIG, getNetworkById } from '@vibeminer/shared';
-import { getEnv } from '@/lib/auth-server';
+import { getEnv, getSessionCookie, getUserIdFromSession } from '@/lib/auth-server';
 
 /**
  * Automated network registration. No admin approval.
+ * Requires an authenticated network account (account_type === 'network').
  * - Validates payload against schema
  * - Devnet: free, instant listing
  * - Mainnet: requires listing fee (feeTxHash or feeConfirmed for now; full payment integration TBD)
  */
 export async function POST(request: Request) {
   try {
+    const token = getSessionCookie(request);
+    if (!token) {
+      return NextResponse.json({ error: 'Sign in required to request a listing' }, { status: 401 });
+    }
+    const userId = await getUserIdFromSession(token);
+    if (!userId) {
+      return NextResponse.json({ error: 'Session expired. Please sign in again.' }, { status: 401 });
+    }
+
+    const { DB } = await getEnv();
+    const userRow = await DB.prepare(
+      'select account_type from users where id = ?'
+    )
+      .bind(userId)
+      .first();
+    if (!userRow || (userRow.account_type as string) !== 'network') {
+      return NextResponse.json(
+        { error: 'Only network accounts can request a listing. Register as a network to continue.' },
+        { status: 403 }
+      );
+    }
+
     const body = await request.json();
     const { feeConfirmed, feeTxHash, ...networkPayload } = body as Record<string, unknown>;
 

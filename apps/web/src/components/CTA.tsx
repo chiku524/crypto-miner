@@ -24,6 +24,9 @@ export function CTA() {
           <p className="mt-3 text-gray-400">
             Start contributing hashrate in one click. Use the web app or download for Windows, Mac & Linux—same dashboard, auto-updates included.
           </p>
+          <p className="mt-2 text-sm text-gray-500">
+            <Link href="/how-mining-works" className="text-accent-cyan hover:underline">How one-click mining works</Link> →
+          </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link
               href="/dashboard"

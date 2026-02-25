@@ -1,11 +1,40 @@
 'use client';
 
+import { useState, useCallback } from 'react';
 import { FEE_CONFIG, formatWithdrawalFee } from '@vibeminer/shared';
 import { Nav } from '@/components/Nav';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { DesktopNav } from '@/components/DesktopNav';
 import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { PLATFORM_WALLET } from '@/lib/platform-wallet';
+
+function CopyableWalletRow({ label, value }: { label: string; value: string }) {
+  const [copied, setCopied] = useState(false);
+  const copy = useCallback(() => {
+    navigator.clipboard.writeText(value).then(
+      () => {
+        setCopied(true);
+        setTimeout(() => setCopied(false), 2000);
+      },
+      () => {}
+    );
+  }, [value]);
+  return (
+    <div className="rounded-lg border border-white/10 bg-surface-900/50 px-4 py-3">
+      <div className="flex items-center justify-between gap-2">
+        <span className="text-xs font-medium uppercase tracking-wider text-gray-500">{label}</span>
+        <button
+          type="button"
+          onClick={copy}
+          className="shrink-0 rounded px-2 py-1 text-xs font-medium text-accent-cyan hover:bg-accent-cyan/10"
+        >
+          {copied ? 'Copied!' : 'Copy'}
+        </button>
+      </div>
+      <p className="mt-1 font-mono text-sm break-all text-gray-300">{value}</p>
+    </div>
+  );
+}
 
 const feesJsonLd = {
   '@context': 'https://schema.org',
@@ -99,26 +128,11 @@ export default function FeesPage() {
               Listing fees (mainnet) and withdrawal fees are sent to the VibeMiner platform wallet below. You can verify payouts on-chain.
             </p>
             <div className="mt-4 space-y-3">
-              <div className="rounded-lg border border-white/10 bg-surface-900/50 px-4 py-3">
-                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">ETH</span>
-                <p className="mt-1 font-mono text-sm break-all text-gray-300">{PLATFORM_WALLET.ETH}</p>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-surface-900/50 px-4 py-3">
-                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">SOL</span>
-                <p className="mt-1 font-mono text-sm break-all text-gray-300">{PLATFORM_WALLET.SOL}</p>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-surface-900/50 px-4 py-3">
-                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">DOGE (xpub)</span>
-                <p className="mt-1 font-mono text-sm break-all text-gray-300">{PLATFORM_WALLET.DOGE_XPUB}</p>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-surface-900/50 px-4 py-3">
-                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">BTC (xpub)</span>
-                <p className="mt-1 font-mono text-sm break-all text-gray-300">{PLATFORM_WALLET.BTC_XPUB}</p>
-              </div>
-              <div className="rounded-lg border border-white/10 bg-surface-900/50 px-4 py-3">
-                <span className="text-xs font-medium uppercase tracking-wider text-gray-500">LTC (xpub)</span>
-                <p className="mt-1 font-mono text-sm break-all text-gray-300">{PLATFORM_WALLET.LTC_XPUB}</p>
-              </div>
+              <CopyableWalletRow label="ETH" value={PLATFORM_WALLET.ETH} />
+              <CopyableWalletRow label="SOL" value={PLATFORM_WALLET.SOL} />
+              <CopyableWalletRow label="DOGE (xpub)" value={PLATFORM_WALLET.DOGE_XPUB} />
+              <CopyableWalletRow label="BTC (xpub)" value={PLATFORM_WALLET.BTC_XPUB} />
+              <CopyableWalletRow label="LTC (xpub)" value={PLATFORM_WALLET.LTC_XPUB} />
             </div>
           </section>
         </div>

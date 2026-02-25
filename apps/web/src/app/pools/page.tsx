@@ -21,6 +21,9 @@ export default function PoolsPage() {
         <p className="mt-2 text-gray-400">
           We connect you to established pools for each network. No config files—just choose a network and start.
         </p>
+        <p className="mt-2 text-sm text-gray-500">
+          New to mining? Read <Link href="/how-mining-works" className="text-accent-cyan hover:underline">How one-click mining works</Link> for the full flow and security details.
+        </p>
 
         <div className="mt-12 space-y-8">
           <section className="rounded-2xl border border-white/5 bg-surface-900/30 p-6">

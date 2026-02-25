@@ -6,6 +6,13 @@ import {
   generateId,
   createSession,
   sessionCookieHeader,
+  validateEmail,
+  validatePasswordLength,
+  MIN_PASSWORD_LEN,
+  MAX_PASSWORD_LEN,
+  MAX_DISPLAY_NAME_LEN,
+  MAX_NETWORK_NAME_LEN,
+  MAX_NETWORK_WEBSITE_LEN,
   type AccountType,
 } from '@/lib/auth-server';
 
@@ -34,12 +41,24 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
+    if (!validateEmail(email)) {
+      return NextResponse.json({ error: 'Invalid email format' }, { status: 400 });
+    }
+    if (!validatePasswordLength(password)) {
+      return NextResponse.json(
+        { error: `Password must be ${MIN_PASSWORD_LEN}–${MAX_PASSWORD_LEN} characters` },
+        { status: 400 }
+      );
+    }
     if (accountType !== 'user' && accountType !== 'network') {
       return NextResponse.json({ error: 'Invalid accountType' }, { status: 400 });
     }
-    if (password.length < 6) {
-      return NextResponse.json({ error: 'Password must be at least 6 characters' }, { status: 400 });
-    }
+    const safeDisplayName =
+      typeof displayName === 'string' ? displayName.trim().slice(0, MAX_DISPLAY_NAME_LEN) : undefined;
+    const safeNetworkName =
+      typeof networkName === 'string' ? networkName.trim().slice(0, MAX_NETWORK_NAME_LEN) : undefined;
+    const safeNetworkWebsite =
+      typeof networkWebsite === 'string' ? networkWebsite.trim().slice(0, MAX_NETWORK_WEBSITE_LEN) : undefined;
 
     let env: Awaited<ReturnType<typeof getEnv>>;
     try {
@@ -77,9 +96,9 @@ export async function POST(request: Request) {
           email.toLowerCase(),
           passwordStore,
           accountType,
-          accountType === 'user' ? (displayName || null) : null,
-          accountType === 'network' ? (networkName || null) : null,
-          accountType === 'network' && networkWebsite ? networkWebsite : null
+          accountType === 'user' ? (safeDisplayName || null) : null,
+          accountType === 'network' ? (safeNetworkName || null) : null,
+          accountType === 'network' && safeNetworkWebsite ? safeNetworkWebsite : null
         )
         .run();
     } catch (dbErr) {

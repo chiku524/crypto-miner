@@ -10,6 +10,7 @@ import {
   getDevnetNetworks,
   type BlockchainNetwork,
   type NetworkEnvironment,
+  INCENTIVIZED_TESTNET_IDS,
 } from '@vibeminer/shared';
 import { MiningPanel } from '@/components/dashboard/MiningPanel';
 import { useMiningSession } from '@/hooks/useMiningSession';
@@ -29,6 +30,8 @@ const ENV_OPTIONS: { value: NetworkEnvironment; label: string }[] = [
   { value: 'mainnet', label: 'Mainnet' },
   { value: 'devnet', label: 'Devnet' },
 ];
+
+const DASHBOARD_ENV_KEY = 'vibeminer-dashboard-env';
 
 const SORT_OPTIONS: { value: 'newest' | 'name-asc' | 'name-desc'; label: string }[] = [
   { value: 'newest', label: 'Newest first' },
@@ -100,6 +103,26 @@ export function DashboardContent() {
     setSelectedEnv(envFromUrl);
   }, [envFromUrl]);
 
+  // Persist env when user changes it (desktop and web).
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(DASHBOARD_ENV_KEY, selectedEnv);
+    } catch (_) {}
+  }, [selectedEnv]);
+
+  // Restore last env when landing on /dashboard without ?env= (e.g. from app launcher).
+  useEffect(() => {
+    if (searchParams.get('env') != null) return;
+    try {
+      const saved = window.localStorage.getItem(DASHBOARD_ENV_KEY);
+      if (saved === 'mainnet' || saved === 'devnet') {
+        setSelectedEnv(saved);
+        router.replace(`/dashboard?env=${saved}${searchParams.get('network') ? `&network=${searchParams.get('network')}` : ''}`, { scroll: false });
+      }
+    } catch (_) {}
+  }, [router, searchParams]);
+
   const setSelectedEnvWithUrl = useCallback(
     (env: NetworkEnvironment) => {
       setSelectedEnv(env);
@@ -114,6 +137,8 @@ export function DashboardContent() {
   const [sortBy, setSortBy] = useState<'newest' | 'name-asc' | 'name-desc'>('newest');
   const [fetchedMainnet, setFetchedMainnet] = useState<NetworkWithMeta[] | null>(null);
   const [fetchedDevnet, setFetchedDevnet] = useState<NetworkWithMeta[] | null>(null);
+  const [networksFetchError, setNetworksFetchError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
   const [startingId, setStartingId] = useState<string | null>(null);
   const [modalNetwork, setModalNetwork] = useState<BlockchainNetwork | null>(null);
   const modalTriggerRef = useRef<HTMLButtonElement | null>(null);
@@ -127,6 +152,7 @@ export function DashboardContent() {
 
   useEffect(() => {
     let cancelled = false;
+    setNetworksFetchError(false);
     fetch('/api/networks')
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Failed to fetch'))))
       .then((data: unknown) => {
@@ -139,12 +165,14 @@ export function DashboardContent() {
         if (!cancelled) {
           setFetchedMainnet(null);
           setFetchedDevnet(null);
+          setNetworksFetchError(true);
+          addToast('Using cached network list. Retry if you need the latest.', 'info');
         }
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [addToast, retryCount]);
 
   const networksForEnv = useMemo((): NetworkWithMeta[] => {
     const staticMain = getMainnetNetworksListed() as NetworkWithMeta[];
@@ -311,6 +339,9 @@ export function DashboardContent() {
           <p className="mt-1 text-gray-400">
             Choose Mainnet or Devnet, then select a network. Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">S</kbd> to quick-start first network, <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">Esc</kbd> to stop.
           </p>
+          <p className="mt-2 text-sm text-gray-500">
+            <Link href="/how-mining-works" className="text-accent-cyan hover:underline">How one-click mining works</Link> →
+          </p>
         </motion.div>
 
         <div className="grid gap-8 lg:grid-cols-3">
@@ -347,6 +378,18 @@ export function DashboardContent() {
               className="mb-3 w-full rounded-xl border border-white/10 bg-surface-850 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none focus:ring-1 focus:ring-accent-cyan/50"
               aria-label="Search networks"
             />
+            {networksFetchError && (
+              <div className="mb-3 flex items-center justify-between gap-2 rounded-lg border border-amber-500/20 bg-amber-500/5 px-3 py-2 text-sm text-amber-200">
+                <span>Using cached list.</span>
+                <button
+                  type="button"
+                  onClick={() => { setNetworksFetchError(false); setRetryCount((c) => c + 1); }}
+                  className="shrink-0 rounded-lg border border-amber-500/30 px-2.5 py-1 text-xs font-medium text-amber-300 hover:bg-amber-500/10"
+                >
+                  Retry
+                </button>
+              </div>
+            )}
             <div className="mb-4 flex items-center justify-between gap-2">
               <label htmlFor="sort-networks" className="text-xs text-gray-500">Sort</label>
               <select
@@ -442,6 +485,11 @@ export function DashboardContent() {
                             Test
                           </span>
                         )}
+                        {INCENTIVIZED_TESTNET_IDS.includes(network.id) && (
+                          <span className="rounded bg-amber-500/20 px-1.5 py-0.5 text-xs font-medium text-amber-300">
+                            Incentivized testnet
+                          </span>
+                        )}
                         {!isStarting && network.status === 'coming-soon' && (
                           <span className="text-xs text-gray-500">Soon</span>
                         )}
@@ -505,6 +553,18 @@ export function DashboardContent() {
                     Select Mainnet or Devnet above, then pick a network to start mining. Or press <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">S</kbd> to quick-start the first available network.
                   </p>
                   <div className="mt-6 flex flex-wrap justify-center gap-3">
+                    {selectedEnv === 'devnet' && (() => {
+                      const boing = filteredNetworks.find((n) => n.id === 'boing-devnet' && n.status === 'live');
+                      return boing ? (
+                        <button
+                          key="boing"
+                          onClick={() => handleStart(boing)}
+                          className="rounded-xl bg-amber-500/20 px-6 py-2.5 text-sm font-medium text-amber-300 transition hover:bg-amber-500/30"
+                        >
+                          Start Boing testnet
+                        </button>
+                      ) : null;
+                    })()}
                     {preselected && preselected.status === 'live' && (
                       <button
                         onClick={() => handleStart(preselected)}
@@ -514,7 +574,7 @@ export function DashboardContent() {
                       </button>
                     )}
                     {filteredNetworks
-                      .filter((n) => n.status === 'live' && n.id !== preselected?.id)
+                      .filter((n) => n.status === 'live' && n.id !== preselected?.id && !(selectedEnv === 'devnet' && n.id === 'boing-devnet'))
                       .slice(0, 2)
                       .map((n) => (
                         <button

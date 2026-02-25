@@ -3,7 +3,7 @@
 import { useState, useMemo, useEffect } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
-import { getMainnetNetworksListed, getDevnetNetworks } from '@vibeminer/shared';
+import { getMainnetNetworksListed, getDevnetNetworks, INCENTIVIZED_TESTNET_IDS } from '@vibeminer/shared';
 import type { BlockchainNetwork } from '@vibeminer/shared';
 import { useIsDesktop } from '@/hooks/useIsDesktop';
 
@@ -47,6 +47,7 @@ function NetworkCard({ network, isNew, requestServiceHref = '/#request-service' 
   const isLive = network.status === 'live';
   const isRequest = network.status === 'requested';
   const isDevnet = network.environment === 'devnet';
+  const isIncentivizedTestnet = INCENTIVIZED_TESTNET_IDS.includes(network.id);
 
   return (
     <motion.article
@@ -76,6 +77,11 @@ function NetworkCard({ network, isNew, requestServiceHref = '/#request-service' 
           {isDevnet && (
             <span className="rounded-full bg-violet-500/20 px-2.5 py-1 text-xs font-medium text-violet-300">
               Devnet
+            </span>
+          )}
+          {isIncentivizedTestnet && (
+            <span className="rounded-full bg-amber-500/20 px-2.5 py-1 text-xs font-medium text-amber-300">
+              Incentivized testnet
             </span>
           )}
           <span
@@ -235,8 +241,11 @@ export function NetworksShowcase() {
   const [searchQuery, setSearchQuery] = useState('');
   const [mainnetNetworks, setMainnetNetworks] = useState<NetworkWithMeta[]>(getInitialMainnet);
   const [devnetNetworks, setDevnetNetworks] = useState<NetworkWithMeta[]>(getInitialDevnet);
+  const [fetchError, setFetchError] = useState(false);
+  const [retryCount, setRetryCount] = useState(0);
 
   useEffect(() => {
+    setFetchError(false);
     fetch('/api/networks')
       .then((res) => (res.ok ? res.json() : Promise.reject(new Error('Failed to fetch'))))
       .then((data: unknown) => {
@@ -248,8 +257,8 @@ export function NetworksShowcase() {
           setDevnetNetworks(sortNewestFirst(parsed.devnet));
         }
       })
-      .catch(() => {});
-  }, []);
+      .catch(() => setFetchError(true));
+  }, [retryCount]);
 
   const filteredMainnet = useMemo(
     () => filterNetworks(mainnetNetworks, searchQuery),
@@ -292,6 +301,18 @@ export function NetworksShowcase() {
             className="mx-auto block w-full max-w-md rounded-xl border border-white/10 bg-surface-900/50 px-4 py-2.5 text-sm text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none focus:ring-1 focus:ring-accent-cyan/50"
             aria-label="Search networks"
           />
+          {fetchError && (
+            <p className="mx-auto mt-3 max-w-md text-center text-sm text-amber-200">
+              Couldn&apos;t load latest list.{' '}
+              <button
+                type="button"
+                onClick={() => setRetryCount((c) => c + 1)}
+                className="font-medium text-accent-cyan hover:underline"
+              >
+                Retry
+              </button>
+            </p>
+          )}
         </motion.div>
 
         <NetworkGrid
@@ -306,6 +327,24 @@ export function NetworksShowcase() {
         />
 
         <div className="mt-16 border-t border-white/5 pt-16">
+          {INCENTIVIZED_TESTNET_IDS.length > 0 && (() => {
+            const boing = devnetNetworks.find((n) => n.id === 'boing-devnet');
+            if (!boing) return null;
+            return (
+              <div className="mb-12 rounded-2xl border border-amber-500/20 bg-amber-500/5 p-6">
+                <h3 className="font-display text-lg font-semibold text-amber-200">Incentivized testnet</h3>
+                <p className="mt-1 text-sm text-gray-400">
+                  Try the Boing testnet—run a validator or full node with one click. Testnet faucet available.
+                </p>
+                <Link
+                  href="/dashboard?env=devnet&network=boing-devnet"
+                  className="mt-4 inline-block rounded-xl bg-amber-500/20 px-5 py-2.5 text-sm font-medium text-amber-300 transition hover:bg-amber-500/30"
+                >
+                  Start Boing testnet →
+                </Link>
+              </div>
+            );
+          })()}
           <NetworkGrid
             id="devnet"
             title="Devnet"

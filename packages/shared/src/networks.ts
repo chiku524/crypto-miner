@@ -189,6 +189,9 @@ export function getLiveNetworks(environment?: NetworkEnvironment): BlockchainNet
   return list.filter((n) => n.status === 'live');
 }
 
+/** Network IDs that are incentivized testnets (e.g. Boing). Shown with a special badge in the UI. */
+export const INCENTIVIZED_TESTNET_IDS: string[] = ['boing-devnet'];
+
 /** Add a new network at runtime (e.g. from API). Returns the validated network or throws. Use parseNetwork() for safe parse. */
 export function registerNetwork(raw: unknown): BlockchainNetwork {
   const result = parseNetwork(raw);

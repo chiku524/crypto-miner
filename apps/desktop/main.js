@@ -95,6 +95,13 @@ function notifyUpdateAvailable(latestVersion) {
   }
 }
 
+/** Send update phase to main window so the in-app overlay can show progress (no popup window). */
+function sendUpdateProgress(phase) {
+  if (mainWindow && !mainWindow.isDestroyed()) {
+    mainWindow.webContents.send('update-progress', { phase });
+  }
+}
+
 function runUpdateCheck() {
   return autoUpdater.checkForUpdatesAndNotify().catch((err) => {
     console.error('[VibeMiner] Update check failed:', err?.message || err);
@@ -161,15 +168,10 @@ function setupUpdaterEvents() {
 
 const AUTO_INSTALL_DELAY_MS = 2500;
 
-/** If auto-update is on and an update is already downloaded, show update window and quit-and-install. */
+/** If auto-update is on and an update is already downloaded, show in-app overlay and quit-and-install (no popup). */
 function runAutoInstallIfReady() {
   if (!loadSettings().autoUpdate || !updateDownloaded) return;
-  const win = createUpdateWindow(getIconPath());
-  win.webContents.once('did-finish-load', () => {
-    win.webContents.executeJavaScript(
-      "document.getElementById('update-status').textContent = 'Installing update… Restarting.';"
-    ).catch(() => {});
-  });
+  sendUpdateProgress('installing');
   setTimeout(() => {
     try {
       autoUpdater.quitAndInstall(false, true);
@@ -179,10 +181,11 @@ function runAutoInstallIfReady() {
   }, AUTO_INSTALL_DELAY_MS);
 }
 
-/** Run the full in-app update flow: themed window, download installer, run it, quit. Keeps flow inside desktop UI. */
+/** Run the full in-app update flow: show progress in main window, download installer, run it, quit. No popup window. */
 async function runInAppUpdateFlow(latestVersion) {
   if (!latestVersion || !isNewerVersion(app.getVersion(), latestVersion)) return;
   notifyUpdateAvailable(latestVersion);
+  sendUpdateProgress('downloading');
   const url = getDirectDownloadUrl(process.platform);
   const version = app.getVersion();
   const headers = {
@@ -192,12 +195,10 @@ async function runInAppUpdateFlow(latestVersion) {
   const ext = path.extname(new URL(url).pathname) || (process.platform === 'win32' ? '.exe' : process.platform === 'darwin' ? '.dmg' : '');
   const tempDir = app.getPath('temp');
   const tempFile = path.join(tempDir, `VibeMiner-Update${ext}`);
-  const updateWin = createUpdateWindow(getIconPath());
 
   try {
     const res = await net.fetch(url, { headers });
     if (!res.ok) {
-      if (updateWin && !updateWin.isDestroyed()) updateWin.close();
       inAppUpdateInProgress = false;
       return;
     }
@@ -205,16 +206,11 @@ async function runInAppUpdateFlow(latestVersion) {
     fs.writeFileSync(tempFile, new Uint8Array(buf), { flag: 'w' });
   } catch (err) {
     console.error('[VibeMiner] Update download failed:', err?.message || err);
-    if (updateWin && !updateWin.isDestroyed()) updateWin.close();
     inAppUpdateInProgress = false;
     return;
   }
 
-  try {
-    await updateWin.webContents.executeJavaScript(
-      "document.getElementById('update-status').textContent = 'Closing app… Installer will run in a moment.';"
-    );
-  } catch (_) {}
+  sendUpdateProgress('installing');
   await new Promise((r) => setTimeout(r, 2000));
 
   const platform = process.platform;
@@ -255,15 +251,6 @@ const SPLASH_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name
 .tag{ margin-top:0.35rem;font-size:0.8rem;color:#9ca3af;animation:fade 0.5s ease-out 0.3s both;}
 @keyframes fade{from{opacity:0;transform:scale(0.96);}to{opacity:1;transform:scale(1);}}
 </style></head><body><div class="symbol" aria-hidden="true">◇</div><div class="name">VibeMiner</div><p class="tag">Mine without the grind.</p></body></html>`;
-
-const UPDATE_WINDOW_HTML = `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>VibeMiner — Updating</title><style>
-*{box-sizing:border-box;}body{margin:0;min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;background:#0c0e12;color:#e5e7eb;font-family:system-ui,sans-serif;text-align:center;padding:2rem;}
-.symbol{width:64px;height:64px;display:flex;align-items:center;justify-content:center;font-size:2rem;background:linear-gradient(135deg,rgba(34,211,238,0.25),rgba(52,211,153,0.2));border-radius:1rem;}
-.name{font-size:1.35rem;font-weight:700;background:linear-gradient(90deg,#22d3ee,#34d399);-webkit-background-clip:text;background-clip:text;color:transparent;margin-top:0.75rem;}
-.spinner{margin-top:1.5rem;height:10px;width:10px;border:2px solid rgba(34,211,238,0.3);border-top-color:#22d3ee;border-radius:50%;animation:spin 0.8s linear infinite;}
-.status{margin-top:1rem;font-size:0.9rem;color:#9ca3af;}
-@keyframes spin{to{transform:rotate(360deg);}}
-</style></head><body><div class="symbol" aria-hidden="true">◇</div><div class="name">VibeMiner</div><div class="spinner" aria-hidden="true"></div><p class="status" id="update-status">Downloading update…</p></body></html>`;
 
 let mainWindow = null;
 let splashWindow = null;
@@ -311,38 +298,6 @@ function createSplashWindow(iconPath) {
   splash.once('ready-to-show', () => splash.show());
   splash.on('closed', () => { splashWindow = null; });
   return splash;
-}
-
-function createUpdateWindow(iconPath) {
-  const win = new BrowserWindow({
-    width: 380,
-    height: 300,
-    frame: false,
-    transparent: false,
-    backgroundColor: '#0c0e12',
-    icon: iconPath || undefined,
-    show: false,
-    webPreferences: { nodeIntegration: false, contextIsolation: true },
-  });
-  win.setMenu(null);
-  win.loadURL('data:text/html;charset=utf-8,' + encodeURIComponent(UPDATE_WINDOW_HTML));
-  win.once('ready-to-show', () => {
-    if (mainWindow && !mainWindow.isDestroyed()) {
-      win.setParentWindow(mainWindow);
-      const bounds = mainWindow.getBounds();
-      const w = 380;
-      const h = 300;
-      win.setBounds({
-        x: Math.floor(bounds.x + (bounds.width - w) / 2),
-        y: Math.floor(bounds.y + (bounds.height - h) / 2),
-        width: w,
-        height: h,
-      });
-    }
-    win.show();
-    win.focus();
-  });
-  return win;
 }
 
 function createWindow() {
@@ -531,7 +486,35 @@ app.whenReady().then(() => {
     return latestUpdateAvailable;
   });
   ipcMain.handle('openExternal', (_, url) => {
-    if (url && typeof url === 'string') shell.openExternal(url);
+    if (!url || typeof url !== 'string') return;
+    try {
+      const u = new URL(url);
+      const protocol = u.protocol.toLowerCase();
+      if (protocol !== 'https:' && protocol !== 'http:') return;
+      if (protocol === 'http:' && u.hostname !== 'localhost' && u.hostname !== '127.0.0.1') return;
+      const host = u.hostname.toLowerCase();
+      const allowedHosts = [
+        'localhost',
+        '127.0.0.1',
+        'vibeminer.tech',
+        'www.vibeminer.tech',
+        'github.com',
+        'www.github.com',
+        'raw.githubusercontent.com',
+        'api.github.com',
+      ];
+      if (allowedHosts.includes(host)) {
+        shell.openExternal(url).catch(() => {});
+        return;
+      }
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        const mainOrigin = mainWindow.webContents.getURL();
+        try {
+          const mainUrl = new URL(mainOrigin);
+          if (mainUrl.hostname.toLowerCase() === host) shell.openExternal(url).catch(() => {});
+        } catch (_) {}
+      }
+    } catch (_) {}
   });
 
   // Install update that electron-updater already downloaded (quit and run installer).
@@ -541,7 +524,7 @@ app.whenReady().then(() => {
     }
   });
 
-  // Download installer in-app and run it after quit (so user doesn't have to open browser).
+  // Download installer in-app and run it after quit (progress in main window, no popup).
   ipcMain.handle('installUpdateNow', async () => {
     if (!latestUpdateAvailable?.directDownloadUrl) {
       return { ok: false, error: 'No update URL' };
@@ -551,8 +534,7 @@ app.whenReady().then(() => {
       return { ok: false, error: 'Already up to date' };
     }
 
-    const iconPath = getIconPath();
-    const updateWin = createUpdateWindow(iconPath);
+    sendUpdateProgress('downloading');
 
     const url = latestUpdateAvailable.directDownloadUrl;
     const headers = {
@@ -566,22 +548,16 @@ app.whenReady().then(() => {
     try {
       const res = await net.fetch(url, { headers });
       if (!res.ok) {
-        if (updateWin && !updateWin.isDestroyed()) updateWin.close();
         return { ok: false, error: `Download failed: ${res.status}` };
       }
       const buf = await res.arrayBuffer();
       fs.writeFileSync(tempFile, new Uint8Array(buf), { flag: 'w' });
     } catch (err) {
       console.error('[VibeMiner] Update download failed:', err?.message || err);
-      if (updateWin && !updateWin.isDestroyed()) updateWin.close();
       return { ok: false, error: err?.message || String(err) };
     }
 
-    try {
-      await updateWin.webContents.executeJavaScript(
-        "document.getElementById('update-status').textContent = 'Closing app… Installer will run in a moment.';"
-      );
-    } catch (_) {}
+    sendUpdateProgress('installing');
     await new Promise((r) => setTimeout(r, 2000));
 
     const platform = process.platform;
