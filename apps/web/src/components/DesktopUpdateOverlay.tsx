@@ -4,15 +4,6 @@ import { useEffect, useState } from 'react';
 
 type UpdatePhase = 'downloading' | 'installing';
 
-declare global {
-  interface Window {
-    electronAPI?: {
-      isDesktop?: boolean;
-      onUpdateProgress?: (callback: (payload: { phase: UpdatePhase }) => void) => void;
-    };
-  }
-}
-
 /**
  * Shows an in-app overlay during update download/install so we don't open a separate
  * popup window. Listens for main process update-progress and displays a themed
