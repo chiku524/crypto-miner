@@ -1,4 +1,5 @@
 const { app, BrowserWindow, ipcMain, shell, net, Tray, Menu } = require('electron');
+const miningService = require('./mining-service');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -105,7 +106,7 @@ function notifyUpdateAvailable(latestVersion) {
 function sendUpdateProgress(phase, messageSuffix) {
   const suffix = messageSuffix || '';
   if (updateOnlyWindow && !updateOnlyWindow.isDestroyed()) {
-    const msg = (phase === 'downloading' ? 'Downloading update…' : 'Installing… The app will close in a moment.') + suffix;
+    const msg = (phase === 'downloading' ? 'Downloading update…' : 'Installing and then restarting application.') + suffix;
     updateOnlyWindow.webContents.executeJavaScript(`(function(){ var el = document.getElementById('update-msg'); if(el) el.textContent = '${msg.replace(/'/g, "\\'")}'; })();`).catch(() => {});
     return;
   }
@@ -521,6 +522,32 @@ app.whenReady().then(async () => {
   });
   ipcMain.handle('getAppVersion', () => app.getVersion());
   ipcMain.handle('reload', () => { if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.reload(); });
+
+  // Real mining: auto-downloads XMRig on first use, then starts mining
+  ipcMain.handle('startRealMining', async (event, { network, walletAddress }) => {
+    try {
+      const userDataPath = app.getPath('userData');
+      const onProgress = (payload) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+        if (win && !win.isDestroyed()) win.webContents.send('miner-download-progress', payload);
+      };
+      const ensure = await miningService.ensureMinerReady(userDataPath, onProgress);
+      if (!ensure.ok) return ensure;
+      return miningService.startMining(network, walletAddress, ensure.minerPath, userDataPath);
+    } catch (err) {
+      console.error('[VibeMiner] startRealMining error:', err?.message);
+      return { ok: false, error: err?.message || 'Failed to start mining' };
+    }
+  });
+  ipcMain.handle('stopRealMining', (_, networkId, environment) => {
+    miningService.stopMining(networkId, environment);
+  });
+  ipcMain.handle('getRealMiningStats', (_, networkId, environment) => {
+    return miningService.getStats(networkId, environment);
+  });
+  ipcMain.handle('isRealMining', (_, networkId, environment) => {
+    return miningService.isMining(networkId, environment);
+  });
   ipcMain.handle('checkForUpdates', async () => {
     const currentVersion = app.getVersion();
     try {

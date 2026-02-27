@@ -4,7 +4,7 @@ import { useState } from 'react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { useToast } from '@/contexts/ToastContext';
-import { FEE_CONFIG } from '@vibeminer/shared';
+import { FEE_CONFIG, ALGORITHM_OPTIONS } from '@vibeminer/shared';
 import type { NetworkEnvironment } from '@vibeminer/shared';
 
 type RequestStatus = 'idle' | 'pending' | 'listed' | 'error';
@@ -24,6 +24,8 @@ export function RequestListingForm() {
   const [poolUrl, setPoolUrl] = useState('');
   const [poolPort, setPoolPort] = useState('');
   const [website, setWebsite] = useState('');
+  const [rewardRate, setRewardRate] = useState('');
+  const [minPayout, setMinPayout] = useState('');
   const [description, setDescription] = useState('');
   const [feeConfirmed, setFeeConfirmed] = useState(false);
   const [status, setStatus] = useState<RequestStatus>('idle');
@@ -41,6 +43,11 @@ export function RequestListingForm() {
     const baseId = toNetworkId(name);
     const desc = description.trim();
     const portNum = poolPort ? Number(poolPort) : undefined;
+    if (!algorithm.trim()) {
+      setStatus('error');
+      setErrorMsg('Please select or enter a mining algorithm.');
+      return;
+    }
     if (desc.length < 20) {
       setStatus('error');
       setErrorMsg('Please provide a clear description of your network and its use case (at least 20 characters).');
@@ -61,13 +68,15 @@ export function RequestListingForm() {
       id: baseId,
       name,
       symbol,
-      algorithm,
+      algorithm: algorithm.trim(),
       environment,
       description: desc,
       icon: '⛓',
       poolUrl: poolUrl.trim(),
       poolPort: portNum,
       website: website || undefined,
+      rewardRate: rewardRate.trim() || undefined,
+      minPayout: minPayout.trim() || undefined,
       status: 'live',
       ...(requiresFee && { feeConfirmed }),
     };
@@ -175,15 +184,31 @@ export function RequestListingForm() {
 
       <div>
         <label htmlFor="req-algorithm" className="block text-sm font-medium text-gray-400">Mining algorithm</label>
-        <input
+        <select
           id="req-algorithm"
-          type="text"
-          value={algorithm}
-          onChange={(e) => setAlgorithm(e.target.value)}
-          required
-          placeholder="e.g. SHA256, RandomX"
-          className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
-        />
+          value={ALGORITHM_OPTIONS.some((o) => o.value === algorithm) ? algorithm : '__other__'}
+          onChange={(e) => setAlgorithm(e.target.value === '__other__' ? '' : e.target.value)}
+          className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white focus:border-accent-cyan/50 focus:outline-none"
+        >
+          <option value="">Select algorithm…</option>
+          {ALGORITHM_OPTIONS.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+          <option value="__other__">Other (custom)</option>
+        </select>
+        {!ALGORITHM_OPTIONS.some((o) => o.value === algorithm) && (
+          <input
+            type="text"
+            value={algorithm}
+            onChange={(e) => setAlgorithm(e.target.value)}
+            placeholder="e.g. SHA256, Scrypt"
+            required
+            className="mt-2 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
+          />
+        )}
+        <p className="mt-1 text-xs text-gray-500">Choose the algorithm miners will use to connect to your pool.</p>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
         <div>
@@ -214,14 +239,38 @@ export function RequestListingForm() {
           />
         </div>
       </div>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div>
+          <label htmlFor="req-website" className="block text-sm font-medium text-gray-400">Website (optional)</label>
+          <input
+            id="req-website"
+            type="url"
+            value={website}
+            onChange={(e) => setWebsite(e.target.value)}
+            placeholder="https://..."
+            className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
+          />
+        </div>
+        <div>
+          <label htmlFor="req-reward" className="block text-sm font-medium text-gray-400">Reward rate (optional)</label>
+          <input
+            id="req-reward"
+            type="text"
+            value={rewardRate}
+            onChange={(e) => setRewardRate(e.target.value)}
+            placeholder="e.g. Variable, ~0.001/day"
+            className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
+          />
+        </div>
+      </div>
       <div>
-        <label htmlFor="req-website" className="block text-sm font-medium text-gray-400">Website (optional)</label>
+        <label htmlFor="req-minpayout" className="block text-sm font-medium text-gray-400">Min. payout (optional)</label>
         <input
-          id="req-website"
-          type="url"
-          value={website}
-          onChange={(e) => setWebsite(e.target.value)}
-          placeholder="https://..."
+          id="req-minpayout"
+          type="text"
+          value={minPayout}
+          onChange={(e) => setMinPayout(e.target.value)}
+          placeholder="e.g. 0.01 XMR, N/A"
           className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
         />
       </div>

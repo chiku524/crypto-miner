@@ -9,7 +9,7 @@
     "dev": "concurrently \"npm run dev:web\" \"wait-on http://localhost:3000 && electron .\"",
     "dev:simulate-update": "concurrently \"npm run dev:web\" \"wait-on http://localhost:3000 && electron . --simulate-update\"",
     "dev:web": "npm run dev -w vibeminer-web",
-    "build": "electron-builder",
+    "build": "node scripts/download-xmrig.js && electron-builder",
     "build:web": "npm run build -w vibeminer-web",
     "start": "electron .",
     "start:simulate-update": "electron . --simulate-update",
@@ -36,6 +36,7 @@
     "files": [
       "main.js",
       "preload.js",
+      "mining-service.js",
       "build"
     ],
     "asarUnpack": [
@@ -75,6 +76,22 @@
       "target": [
         "AppImage"
       ]
-    }
+    },
+    "extraResources": [
+      {
+        "from": "resources/miners",
+        "to": "miners",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "resources/licenses",
+        "to": "licenses",
+        "filter": [
+          "**/*"
+        ]
+      }
+    ]
   }
 }

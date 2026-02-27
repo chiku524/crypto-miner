@@ -25,4 +25,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('update-progress', handler);
     return () => ipcRenderer.removeListener('update-progress', handler);
   },
+  // Real mining (desktop only) — XMRig auto-downloads on first use
+  startRealMining: (opts) => ipcRenderer.invoke('startRealMining', opts),
+  stopRealMining: (networkId, environment) => ipcRenderer.invoke('stopRealMining', networkId, environment),
+  getRealMiningStats: (networkId, environment) => ipcRenderer.invoke('getRealMiningStats', networkId, environment),
+  isRealMining: (networkId, environment) => ipcRenderer.invoke('isRealMining', networkId, environment),
+  onMinerDownloadProgress: (callback) => {
+    const handler = (_, payload) => callback(payload);
+    ipcRenderer.on('miner-download-progress', handler);
+    return () => ipcRenderer.removeListener('miner-download-progress', handler);
+  },
 });

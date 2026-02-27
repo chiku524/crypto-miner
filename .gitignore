@@ -24,5 +24,7 @@ nul
 # Electron
 apps/desktop/out/
 apps/desktop/build/
+# XMRig binaries (downloaded at build time, not committed)
+apps/desktop/resources/miners/
 *.pfx
 apps/desktop/cert.pfx

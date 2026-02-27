@@ -10,3 +10,4 @@ export {
   type BlockchainNetworkValidated,
 } from './schema';
 export * from './networks';
+export * from './mining';

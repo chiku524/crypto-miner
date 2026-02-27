@@ -540,13 +540,14 @@ export function DashboardContent() {
           <div className="lg:col-span-2">
             <AnimatePresence mode="wait">
               {sessionsWithNetworks.length > 0 ? (
-                <div className="space-y-6">
+                <div className="space-y-3">
                   {sessionsWithNetworks.map(({ session, network }) => (
                     <MiningPanel
                       key={`${session.environment}-${session.networkId}`}
                       session={session}
                       network={network}
                       onStop={() => handleStop(session.networkId)}
+                      compact={sessionsWithNetworks.length > 1}
                     />
                   ))}
                 </div>

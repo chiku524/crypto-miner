@@ -81,7 +81,7 @@ Networks are split into **mainnet** (production, real rewards) and **devnet** (t
 
 ## Mining in production
 
-The current UI uses **simulated** hashrate and earnings for demo purposes. To connect real mining:
+Networks include **pool URLs and ports** for real mining. The desktop app has a mining service for XMRig (Monero, Raptoreum). See [docs/MINING_INTEGRATION.md](./docs/MINING_INTEGRATION.md). The UI uses simulated hashrate; real mining is wired when XMRig is installed. To connect real mining:
 
 1. **Pool integration** — Use each network’s pool API (e.g. Stratum, HTTP) to fetch live hashrate and balance.
 2. **Miner binary** — For desktop, bundle or download a miner (e.g. xmrig for Monero) and orchestrate it from the Electron main process; the UI would show real stats from the miner or pool.

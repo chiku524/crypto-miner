@@ -86,7 +86,7 @@ export default function MiningSessionsPage() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              className="space-y-6"
+              className="space-y-3"
             >
               {sessionsWithNetworks.map(({ session, network }) => (
                 <MiningPanel
@@ -94,6 +94,7 @@ export default function MiningSessionsPage() {
                   session={session}
                   network={network}
                   onStop={() => stopMining(session.networkId)}
+                  compact={sessionsWithNetworks.length > 1}
                 />
               ))}
             </motion.div>
