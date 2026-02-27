@@ -14,6 +14,7 @@ import {
 } from '@vibeminer/shared';
 import { MiningPanel } from '@/components/dashboard/MiningPanel';
 import { useMining } from '@/contexts/MiningContext';
+import { getMiningWallet } from '@/components/MiningWalletSettings';
 import { useAuth } from '@/contexts/AuthContext';
 import { useToast } from '@/contexts/ToastContext';
 import { NetworkModal } from '@/components/ui/NetworkModal';
@@ -210,11 +211,16 @@ export function DashboardContent() {
   const { sessions, startMining, stopMining, isMining } = useMining();
 
   const handleStart = useCallback(
-    (network: BlockchainNetwork) => {
-      if (network.status === 'live' && !isMining(network.id, network.environment)) {
-        setStartingId(network.id);
-        startMining(network.id, network.environment);
+    async (network: BlockchainNetwork) => {
+      if (network.status !== 'live' || isMining(network.id, network.environment)) return;
+      setStartingId(network.id);
+      const wallet = getMiningWallet();
+      const result = await startMining(network, wallet);
+      if (result.ok) {
         addToast(`Mining ${network.name} started`);
+      } else {
+        addToast(result.error ?? 'Failed to start mining', 'error');
+        setStartingId(null);
       }
     },
     [startMining, isMining, addToast]
@@ -225,9 +231,9 @@ export function DashboardContent() {
   }, [sessions.length]);
 
   const handleStop = useCallback(
-    (networkId: string) => {
+    (networkId: string, environment?: NetworkEnvironment) => {
       addToast('Mining stopped');
-      stopMining(networkId);
+      stopMining(networkId, environment);
     },
     [stopMining, addToast]
   );
@@ -250,7 +256,7 @@ export function DashboardContent() {
       if (e.key === 'Escape') {
         if (modalNetwork) setModalNetwork(null);
         else if (sessions.length > 0) {
-          handleStop(sessions[0].networkId);
+          handleStop(sessions[0].networkId, sessions[0].environment);
         }
       }
       if (e.key === 's' && !e.ctrlKey && !e.metaKey && sessions.length === 0 && !modalNetwork) {
@@ -546,7 +552,7 @@ export function DashboardContent() {
                       key={`${session.environment}-${session.networkId}`}
                       session={session}
                       network={network}
-                      onStop={() => handleStop(session.networkId)}
+                      onStop={() => handleStop(session.networkId, session.environment)}
                       compact={sessionsWithNetworks.length > 1}
                     />
                   ))}

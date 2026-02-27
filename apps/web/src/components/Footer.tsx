@@ -18,6 +18,7 @@ export function Footer() {
           <Link href={isDesktop ? '/networks' : '/#how-it-works'} className="transition hover:text-white">How it works</Link>
           {!isDesktop && <Link href="/download" className="transition hover:text-white">Download</Link>}
           <Link href="/fees" className="transition hover:text-white">Fees</Link>
+          <Link href="/licenses" className="transition hover:text-white">Licenses</Link>
           <Link href="/dashboard" className="transition hover:text-white">Dashboard</Link>
           <a href="mailto:support@vibeminer.tech" className="transition hover:text-white">Support</a>
         </div>

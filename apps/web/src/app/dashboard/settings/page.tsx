@@ -8,6 +8,7 @@ import { motion } from 'framer-motion';
 import { useDesktopCheck } from '@/hooks/useIsDesktop';
 import { Breadcrumbs } from '@/components/ui/Breadcrumbs';
 import { DesktopAppSettings } from '@/components/DesktopAppSettings';
+import { MiningWalletSettings } from '@/components/MiningWalletSettings';
 import { DesktopNav } from '@/components/DesktopNav';
 
 const AUTH_LOAD_TIMEOUT_MS = 6000;
@@ -116,6 +117,10 @@ export default function SettingsPage() {
               <p className="mt-2 text-xs text-gray-500">
                 These options only apply when you’re using the VibeMiner desktop app. In the browser they are hidden.
               </p>
+            </section>
+            <section>
+              <h2 className="font-display text-lg font-semibold text-white mb-3">Mining</h2>
+              <MiningWalletSettings />
             </section>
           </div>
         </motion.div>

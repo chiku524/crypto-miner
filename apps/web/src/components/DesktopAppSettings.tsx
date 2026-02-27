@@ -35,6 +35,11 @@ declare global {
       onUpdateDownloaded?: (callback: () => void) => void;
       onUpdateAvailable?: (callback: (info: UpdateAvailableInfo) => void) => void;
       onUpdateProgress?: (callback: (payload: { phase: UpdatePhase }) => void) => void | (() => void);
+      // Real mining (desktop)
+      startRealMining?: (opts: { network: { id: string; poolUrl: string; poolPort: number; algorithm?: string; environment?: string }; walletAddress: string }) => Promise<{ ok: boolean; error?: string }>;
+      stopRealMining?: (networkId: string, environment: string) => void;
+      getRealMiningStats?: (networkId: string, environment: string) => Promise<{ hashrate: number; shares: number } | null>;
+      isRealMining?: (networkId: string, environment: string) => Promise<boolean>;
     };
   }
 }

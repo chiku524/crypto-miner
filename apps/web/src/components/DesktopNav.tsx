@@ -53,6 +53,9 @@ export function DesktopNav() {
           <Link href="/dashboard/settings" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
             Settings
           </Link>
+          <Link href="/licenses" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
+            Licenses
+          </Link>
           {!loading && user && isAdmin && (
             <Link href="/dashboard/admin" className="rounded px-2.5 py-1.5 text-sm text-amber-400/90 transition hover:bg-amber-500/10 hover:text-amber-300">
               Admin

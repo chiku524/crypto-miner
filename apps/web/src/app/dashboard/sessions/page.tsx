@@ -93,7 +93,7 @@ export default function MiningSessionsPage() {
                   key={`${session.environment}-${session.networkId}`}
                   session={session}
                   network={network}
-                  onStop={() => stopMining(session.networkId)}
+                  onStop={() => stopMining(session.networkId, session.environment)}
                   compact={sessionsWithNetworks.length > 1}
                 />
               ))}

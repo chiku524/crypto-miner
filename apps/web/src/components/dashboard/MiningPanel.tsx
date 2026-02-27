@@ -162,13 +162,10 @@ export function MiningPanel({ session, network, onStop, compact = false }: Minin
           Min. payout: {network.minPayout ?? '—'}. Withdrawal fee: <strong className="text-gray-400">{FEE_CONFIG.WITHDRAWAL.percent}%</strong>.{' '}
           <Link href="/fees" className="text-accent-cyan hover:underline">See fees</Link>
         </p>
-        <div className="mb-2 flex items-center gap-2">
-          <input
-            type="text"
-            placeholder="Payout address (optional)"
-            className="flex-1 rounded-lg border border-white/10 bg-surface-850/50 px-3 py-1.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:ring-1 focus:ring-accent-cyan/50"
-            aria-label="Payout wallet address"
-          />
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <p className="text-xs text-gray-500">
+            Payout address is set in <Link href="/dashboard/settings" className="text-accent-cyan hover:underline">Settings</Link>
+          </p>
           {confirming ? (
             <div className="flex items-center gap-1.5">
               <span className="text-xs text-gray-400">Stop?</span>
