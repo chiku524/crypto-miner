@@ -22,7 +22,7 @@ export function DesktopUpdateOverlay() {
 
   if (!phase) return null;
 
-  const label = phase === 'downloading' ? 'Downloading update…' : 'Installing and then restarting application.';
+  const label = phase === 'downloading' ? 'Downloading update…' : 'Installing… The app will be restarting in a moment.';
 
   return (
     <div

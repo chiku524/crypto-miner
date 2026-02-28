@@ -107,7 +107,7 @@ function notifyUpdateAvailable(latestVersion) {
 function sendUpdateProgress(phase, messageSuffix) {
   const suffix = messageSuffix || '';
   if (updateOnlyWindow && !updateOnlyWindow.isDestroyed()) {
-    const msg = (phase === 'downloading' ? 'Downloading update…' : 'Installing and then restarting application.') + suffix;
+    const msg = (phase === 'downloading' ? 'Downloading update…' : 'Installing… The app will be restarting in a moment.') + suffix;
     updateOnlyWindow.webContents.executeJavaScript(`(function(){ var el = document.getElementById('update-msg'); if(el) el.textContent = '${msg.replace(/'/g, "\\'")}'; })();`).catch(() => {});
     return;
   }

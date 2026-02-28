@@ -134,7 +134,7 @@ export function DesktopAppSettings() {
     try {
       const result = await window.electronAPI.installUpdateNow();
       if (result?.ok) {
-        addToast('Update downloaded. App will close and the installer will open.', 'success');
+        addToast('Update downloaded. The app will be restarting in a moment.', 'success');
       } else {
         addToast(result?.error ? `Update failed: ${result.error}` : 'Update failed', 'error');
         setInstalling(false);
