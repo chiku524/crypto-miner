@@ -6,17 +6,17 @@ const steps = [
   {
     step: '1',
     title: 'Choose a network',
-    description: 'Browse networks that need hashrate. Each card shows algorithm, rewards, and status.',
+    description: 'Browse mainnet and devnet. Mine PoW networks or run PoS nodes—each card shows algorithm, resource tier, and status.',
   },
   {
     step: '2',
-    title: 'Start mining',
-    description: 'Click start—no config files or terminal. We connect you to the pool and manage the session.',
+    title: 'Start mining or run a node',
+    description: 'One click—no config files or terminal. Mining connects you to the pool; node running downloads and starts the binary automatically.',
   },
   {
     step: '3',
-    title: 'Earn & withdraw',
-    description: 'Track hashrate and estimated earnings. Withdraw when you hit the minimum payout. A 1% service fee applies to withdrawals—see Fees for details.',
+    title: 'Earn & participate',
+    description: 'Track hashrate and earnings, or run validators and full nodes. Withdraw when you hit minimum payout. 1% fee on withdrawals—see Fees.',
   },
 ];
 
@@ -50,7 +50,7 @@ export function HowItWorks() {
             How it works
           </h2>
           <p className="mt-3 text-gray-400">
-            Three steps to contributing to decentralized networks.
+            Mine, run nodes, and host networks—three steps.
           </p>
         </motion.div>
         <motion.div

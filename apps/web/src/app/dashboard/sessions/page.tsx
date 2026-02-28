@@ -58,8 +58,8 @@ export default function MiningSessionsPage() {
         <Breadcrumbs
           crumbs={[
             { label: 'Home', href: isDesktop ? '/app' : '/' },
-            { label: 'Mining dashboard', href: '/dashboard' },
-            { label: 'Active sessions' },
+            { label: 'Dashboard', href: '/dashboard' },
+            { label: 'Sessions' },
           ]}
         />
         <motion.div
@@ -67,15 +67,15 @@ export default function MiningSessionsPage() {
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 mt-4"
         >
-          <h1 className="font-display text-2xl font-bold sm:text-3xl">Mining sessions</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-3xl">Sessions</h1>
           <p className="mt-1 text-gray-400">
-            View and manage your active mining sessions. You can mine multiple networks at once.
+            Active mining and node sessions. Multiple networks at once.
           </p>
           <p className="mt-2 text-sm text-gray-500">
             <Link href="/dashboard" className="text-accent-cyan hover:underline">
-              Go to mining dashboard
+              Go to dashboard
             </Link>{' '}
-            to start mining more networks.
+            to start mining or running nodes.
           </p>
         </motion.div>
 
@@ -109,13 +109,13 @@ export default function MiningSessionsPage() {
               <span className="text-5xl opacity-50" aria-hidden="true">
                 ◇
               </span>
-              <p className="mt-4 font-medium text-gray-400">No active mining sessions</p>
+              <p className="mt-4 font-medium text-gray-400">No active sessions</p>
               <p className="mt-2 max-w-sm text-sm text-gray-500">
-                Start mining from the{' '}
+                Start mining or running nodes from the{' '}
                 <Link href="/dashboard" className="text-accent-cyan hover:underline">
-                  mining dashboard
+                  dashboard
                 </Link>
-                . Sessions will appear here so you can monitor and manage them in one place.
+                . Sessions will appear here.
               </p>
               <Link
                 href="/dashboard"

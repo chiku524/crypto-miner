@@ -36,6 +36,11 @@ create table if not exists network_listings (
   status text not null default 'live' check (status in ('live', 'coming-soon')),
   requested_by_user_id text references users(id),
   listing_fee_paid integer default 0,
+  node_download_url text,
+  node_command_template text,
+  node_disk_gb integer,
+  node_ram_mb integer,
+  node_binary_sha256 text,
   created_at text default (datetime('now')) not null,
   updated_at text default (datetime('now')) not null
 );

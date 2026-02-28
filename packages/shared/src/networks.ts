@@ -18,6 +18,8 @@ const MAINNET_NETWORKS_RAW: unknown[] = [
     status: 'live',
     rewardRate: '~0.0003 XMR/day (est.)',
     minPayout: '0.003 XMR',
+    nodeDiskGb: 150,
+    nodeRamMb: 4096,
   },
   {
     id: 'raptoreum',
@@ -33,6 +35,8 @@ const MAINNET_NETWORKS_RAW: unknown[] = [
     status: 'live',
     rewardRate: 'Variable',
     minPayout: '10 RTM',
+    nodeDiskGb: 15,
+    nodeRamMb: 2048,
   },
   {
     id: 'ergo',
@@ -48,6 +52,8 @@ const MAINNET_NETWORKS_RAW: unknown[] = [
     status: 'live',
     rewardRate: 'Variable',
     minPayout: '0.01 ERG',
+    nodeDiskGb: 50,
+    nodeRamMb: 4096,
   },
   {
     id: 'kaspa',
@@ -63,6 +69,8 @@ const MAINNET_NETWORKS_RAW: unknown[] = [
     status: 'live',
     rewardRate: 'Variable',
     minPayout: '100 KAS',
+    nodeDiskGb: 12,
+    nodeRamMb: 4096,
   },
   {
     id: 'nexa',

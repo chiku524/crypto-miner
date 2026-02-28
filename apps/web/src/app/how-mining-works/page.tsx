@@ -5,14 +5,14 @@ import { HowMiningWorksContent } from './HowMiningWorksContent';
 const base = site.baseUrl.replace(/\/$/, '');
 
 export const metadata: Metadata = {
-  title: 'How one-click mining works',
+  title: 'How mining & nodes work',
   description:
-    'Learn how VibeMiner one-click mining works: choose a network, start a session, track hashrate and earnings, and withdraw securely. No terminal, no config files.',
+    'Learn how VibeMiner works: mine PoW networks, run PoS nodes, track hashrate and earnings, withdraw securely. No terminal, no config files.',
   alternates: { canonical: `${base}/how-mining-works` },
   openGraph: {
     url: `${base}/how-mining-works`,
-    title: 'How one-click mining works | VibeMiner',
-    description: 'Choose a network, start mining, earn and withdraw. No terminal required.',
+    title: 'How mining & nodes work | VibeMiner',
+    description: 'Mine or run nodes—choose a network, start, earn. No terminal required.',
   },
 };
 

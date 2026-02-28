@@ -51,6 +51,12 @@ export const BlockchainNetworkSchema = z.object({
   rewardRate: z.string().max(MAX_STRING_LENGTHS.rewardRate).optional(),
   minPayout: z.string().max(MAX_STRING_LENGTHS.minPayout).optional(),
   requestedBy: z.string().max(MAX_STRING_LENGTHS.requestedBy).optional(),
+  // Optional node config (for running full nodes via UI)
+  nodeDownloadUrl: z.string().url().max(512).optional(),
+  nodeCommandTemplate: z.string().max(1024).optional(),
+  nodeDiskGb: z.number().int().min(1).max(2000).optional(),
+  nodeRamMb: z.number().int().min(256).max(65536).optional(),
+  nodeBinarySha256: z.string().regex(/^[a-fA-F0-9]{64}$/).optional(),
 });
 
 export type BlockchainNetworkInput = z.input<typeof BlockchainNetworkSchema>;

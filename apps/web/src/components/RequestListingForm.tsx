@@ -28,6 +28,12 @@ export function RequestListingForm() {
   const [minPayout, setMinPayout] = useState('');
   const [description, setDescription] = useState('');
   const [feeConfirmed, setFeeConfirmed] = useState(false);
+  const [showNodeSection, setShowNodeSection] = useState(false);
+  const [nodeDownloadUrl, setNodeDownloadUrl] = useState('');
+  const [nodeCommandTemplate, setNodeCommandTemplate] = useState('');
+  const [nodeDiskGb, setNodeDiskGb] = useState('');
+  const [nodeRamMb, setNodeRamMb] = useState('');
+  const [nodeBinarySha256, setNodeBinarySha256] = useState('');
   const [status, setStatus] = useState<RequestStatus>('idle');
   const [errorMsg, setErrorMsg] = useState<string | null>(null);
   const { addToast } = useToast();
@@ -45,7 +51,7 @@ export function RequestListingForm() {
     const portNum = poolPort ? Number(poolPort) : undefined;
     if (!algorithm.trim()) {
       setStatus('error');
-      setErrorMsg('Please select or enter a mining algorithm.');
+      setErrorMsg('Please select or enter an algorithm (e.g. RandomX for mining, PoS for proof-of-stake).');
       return;
     }
     if (desc.length < 20) {
@@ -53,18 +59,20 @@ export function RequestListingForm() {
       setErrorMsg('Please provide a clear description of your network and its use case (at least 20 characters).');
       return;
     }
-    if (!poolUrl.trim()) {
+    const hasNode = !!(nodeDownloadUrl.trim() && nodeCommandTemplate.trim());
+    const hasPool = !!(poolUrl.trim() && portNum != null && portNum >= 1 && portNum <= 65535);
+    if (!hasPool && !hasNode) {
       setStatus('error');
-      setErrorMsg('Pool URL is required so miners can connect to your network.');
+      setErrorMsg('Provide either a mining pool (URL + port) for PoW, or node config (download URL + command) for PoS/node networks.');
       return;
     }
-    if (portNum == null || portNum < 1 || portNum > 65535) {
+    if (poolUrl.trim() && (portNum == null || portNum < 1 || portNum > 65535)) {
       setStatus('error');
-      setErrorMsg('Please enter a valid pool port (1–65535).');
+      setErrorMsg('When providing a pool URL, a valid pool port (1–65535) is required.');
       return;
     }
 
-    const payload = {
+    const payload: Record<string, unknown> = {
       id: baseId,
       name,
       symbol,
@@ -72,14 +80,25 @@ export function RequestListingForm() {
       environment,
       description: desc,
       icon: '⛓',
-      poolUrl: poolUrl.trim(),
-      poolPort: portNum,
+      poolUrl: poolUrl.trim() || undefined,
+      poolPort: hasPool ? portNum : undefined,
       website: website || undefined,
       rewardRate: rewardRate.trim() || undefined,
       minPayout: minPayout.trim() || undefined,
       status: 'live',
       ...(requiresFee && { feeConfirmed }),
     };
+    if (nodeDownloadUrl.trim() && nodeCommandTemplate.trim()) {
+      payload.nodeDownloadUrl = nodeDownloadUrl.trim();
+      payload.nodeCommandTemplate = nodeCommandTemplate.trim();
+      const disk = nodeDiskGb ? Number(nodeDiskGb) : undefined;
+      const ram = nodeRamMb ? Number(nodeRamMb) : undefined;
+      if (disk && disk >= 1 && disk <= 2000) payload.nodeDiskGb = disk;
+      if (ram && ram >= 256 && ram <= 65536) payload.nodeRamMb = ram;
+      if (nodeBinarySha256.trim() && /^[a-fA-F0-9]{64}$/.test(nodeBinarySha256.trim())) {
+        payload.nodeBinarySha256 = nodeBinarySha256.trim();
+      }
+    }
 
     try {
       const res = await fetch('/api/networks/register', {
@@ -183,7 +202,7 @@ export function RequestListingForm() {
       </div>
 
       <div>
-        <label htmlFor="req-algorithm" className="block text-sm font-medium text-gray-400">Mining algorithm</label>
+        <label htmlFor="req-algorithm" className="block text-sm font-medium text-gray-400">Algorithm</label>
         <select
           id="req-algorithm"
           value={ALGORITHM_OPTIONS.some((o) => o.value === algorithm) ? algorithm : '__other__'}
@@ -208,35 +227,36 @@ export function RequestListingForm() {
             className="mt-2 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
           />
         )}
-        <p className="mt-1 text-xs text-gray-500">Choose the algorithm miners will use to connect to your pool.</p>
+        <p className="mt-1 text-xs text-gray-500">e.g. RandomX for mining, PoS for proof-of-stake.</p>
       </div>
-      <div className="grid gap-4 sm:grid-cols-2">
-        <div>
-          <label htmlFor="req-pool" className="block text-sm font-medium text-gray-400">Pool URL (required)</label>
-          <input
-            id="req-pool"
-            type="text"
-            value={poolUrl}
-            onChange={(e) => setPoolUrl(e.target.value)}
-            placeholder="pool.example.com"
-            required
-            className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
-          />
-          <p className="mt-1 text-xs text-gray-500">Miners connect here; required for listing.</p>
-        </div>
-        <div>
-          <label htmlFor="req-port" className="block text-sm font-medium text-gray-400">Pool port (required)</label>
-          <input
-            id="req-port"
-            type="number"
-            value={poolPort}
-            onChange={(e) => setPoolPort(e.target.value)}
-            placeholder="3333"
-            min={1}
-            max={65535}
-            required
-            className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
-          />
+      <div className="rounded-lg border border-white/10 bg-surface-850/50 p-4">
+        <h4 className="text-sm font-medium text-gray-300">Mining pool (for PoW networks)</h4>
+        <p className="mt-0.5 text-xs text-gray-500">Required for mineable chains. Omit for PoS/node-only networks.</p>
+        <div className="mt-3 grid gap-4 sm:grid-cols-2">
+          <div>
+            <label htmlFor="req-pool" className="block text-xs font-medium text-gray-500">Pool URL</label>
+            <input
+              id="req-pool"
+              type="text"
+              value={poolUrl}
+              onChange={(e) => setPoolUrl(e.target.value)}
+              placeholder="pool.example.com"
+              className="mt-1 w-full rounded-lg border border-white/10 bg-surface-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none"
+            />
+          </div>
+          <div>
+            <label htmlFor="req-port" className="block text-xs font-medium text-gray-500">Pool port</label>
+            <input
+              id="req-port"
+              type="number"
+              value={poolPort}
+              onChange={(e) => setPoolPort(e.target.value)}
+              placeholder="3333"
+              min={1}
+              max={65535}
+              className="mt-1 w-full rounded-lg border border-white/10 bg-surface-900 px-3 py-2 text-sm text-white focus:outline-none"
+            />
+          </div>
         </div>
       </div>
       <div className="grid gap-4 sm:grid-cols-2">
@@ -273,6 +293,85 @@ export function RequestListingForm() {
           placeholder="e.g. 0.01 XMR, N/A"
           className="mt-1 w-full rounded-lg border border-white/10 bg-surface-850 px-4 py-2.5 text-white placeholder-gray-500 focus:border-accent-cyan/50 focus:outline-none"
         />
+      </div>
+      <div className="rounded-lg border border-white/10 bg-surface-850/50 p-4">
+        <button
+          type="button"
+          onClick={() => setShowNodeSection(!showNodeSection)}
+          className="flex w-full items-center justify-between text-left text-sm font-medium text-gray-300"
+        >
+          <span>Node support (optional)</span>
+          <span className="text-gray-500">{showNodeSection ? '▼' : '▶'}</span>
+        </button>
+        <p className="mt-1 text-xs text-gray-500">
+          Let users run your network&apos;s full node via the VibeMiner UI. Download URLs must be from allowed hosts (GitHub, official sites). Commands are validated for safety.
+        </p>
+        {showNodeSection && (
+          <div className="mt-4 space-y-3">
+            <div>
+              <label htmlFor="req-node-url" className="block text-xs font-medium text-gray-500">Node download URL (HTTPS)</label>
+              <input
+                id="req-node-url"
+                type="url"
+                value={nodeDownloadUrl}
+                onChange={(e) => setNodeDownloadUrl(e.target.value)}
+                placeholder="https://github.com/.../releases/..."
+                className="mt-1 w-full rounded-lg border border-white/10 bg-surface-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label htmlFor="req-node-cmd" className="block text-xs font-medium text-gray-500">Command template (use {`{dataDir}`} for data path)</label>
+              <input
+                id="req-node-cmd"
+                type="text"
+                value={nodeCommandTemplate}
+                onChange={(e) => setNodeCommandTemplate(e.target.value)}
+                placeholder="monerod --data-dir {dataDir} --non-interactive"
+                className="mt-1 w-full rounded-lg border border-white/10 bg-surface-900 px-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label htmlFor="req-node-disk" className="block text-xs font-medium text-gray-500">Disk (GB)</label>
+                <input
+                  id="req-node-disk"
+                  type="number"
+                  value={nodeDiskGb}
+                  onChange={(e) => setNodeDiskGb(e.target.value)}
+                  placeholder="e.g. 50"
+                  min={1}
+                  max={2000}
+                  className="mt-1 w-full rounded-lg border border-white/10 bg-surface-900 px-3 py-2 text-sm text-white focus:outline-none"
+                />
+              </div>
+              <div>
+                <label htmlFor="req-node-ram" className="block text-xs font-medium text-gray-500">RAM (MB)</label>
+                <input
+                  id="req-node-ram"
+                  type="number"
+                  value={nodeRamMb}
+                  onChange={(e) => setNodeRamMb(e.target.value)}
+                  placeholder="e.g. 4096"
+                  min={256}
+                  max={65536}
+                  className="mt-1 w-full rounded-lg border border-white/10 bg-surface-900 px-3 py-2 text-sm text-white focus:outline-none"
+                />
+              </div>
+            </div>
+            <div>
+              <label htmlFor="req-node-sha256" className="block text-xs font-medium text-gray-500">Binary SHA256 (optional, for integrity)</label>
+              <input
+                id="req-node-sha256"
+                type="text"
+                value={nodeBinarySha256}
+                onChange={(e) => setNodeBinarySha256(e.target.value)}
+                placeholder="64 hex chars"
+                maxLength={64}
+                className="mt-1 w-full rounded-lg border border-white/10 bg-surface-900 px-3 py-2 font-mono text-sm text-white placeholder-gray-500 focus:outline-none"
+              />
+            </div>
+          </div>
+        )}
       </div>
       <div>
         <label htmlFor="req-desc" className="block text-sm font-medium text-gray-400">Description (required)</label>

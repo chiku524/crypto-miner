@@ -1,5 +1,6 @@
 const { app, BrowserWindow, ipcMain, shell, net, Tray, Menu } = require('electron');
 const miningService = require('./mining-service');
+const nodeService = require('./node-service');
 const path = require('path');
 const fs = require('fs');
 const { spawn } = require('child_process');
@@ -547,6 +548,31 @@ app.whenReady().then(async () => {
   });
   ipcMain.handle('isRealMining', (_, networkId, environment) => {
     return miningService.isMining(networkId, environment);
+  });
+  // Node running: start/stop full blockchain nodes
+  ipcMain.handle('startNode', async (event, { network }) => {
+    try {
+      const userDataPath = app.getPath('userData');
+      const onProgress = (payload) => {
+        const win = BrowserWindow.fromWebContents(event.sender);
+        if (win && !win.isDestroyed()) win.webContents.send('node-download-progress', payload);
+      };
+      const ensure = await nodeService.ensureNodeReady(network, userDataPath, onProgress);
+      if (!ensure.ok) return ensure;
+      return nodeService.startNode(network, userDataPath);
+    } catch (err) {
+      console.error('[VibeMiner] startNode error:', err?.message);
+      return { ok: false, error: err?.message || 'Failed to start node' };
+    }
+  });
+  ipcMain.handle('stopNode', (_, networkId, environment) => {
+    nodeService.stopNode(networkId, environment);
+  });
+  ipcMain.handle('getNodeStatus', (_, networkId, environment) => {
+    return nodeService.getNodeStatus(networkId, environment);
+  });
+  ipcMain.handle('isNodeRunning', (_, networkId, environment) => {
+    return nodeService.isNodeRunning(networkId, environment);
   });
   ipcMain.handle('checkForUpdates', async () => {
     const currentVersion = app.getVersion();

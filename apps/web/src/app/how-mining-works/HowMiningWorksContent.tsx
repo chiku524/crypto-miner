@@ -21,7 +21,7 @@ const steps = [
   {
     step: 3,
     title: 'Select a network and click Start',
-    body: 'Browse the list, use search if needed, and click Start on the network you want to mine. No config files, no terminal. We connect you to the right pool for that network and manage the session.',
+    body: 'Browse the list and click Start. For mineable (PoW) networks, we connect you to the pool. For node-only (PoS) networks, we download and run the node binary. No config files, no terminal—we manage the session.',
   },
   {
     step: 4,
@@ -48,7 +48,7 @@ export function HowMiningWorksContent() {
         <Breadcrumbs
           crumbs={[
             { label: 'Home', href: homeHref },
-            { label: 'How one-click mining works' },
+            { label: 'How it works' },
           ]}
         />
         <motion.div
@@ -58,10 +58,10 @@ export function HowMiningWorksContent() {
           className="mt-6"
         >
           <h1 className="font-display text-3xl font-bold tracking-tight text-white sm:text-4xl">
-            How one-click mining works
+            How mining &amp; nodes work
           </h1>
           <p className="mt-3 text-lg text-gray-400">
-            Mine without the terminal. Choose a network, click Start, and we handle the rest. Here&apos;s the full flow and how we keep your account and payouts secure.
+            Mine PoW networks or run PoS nodes—no terminal. Choose a network, click Start, and we handle the rest. Here&apos;s the full flow and how we keep your account secure.
           </p>
         </motion.div>
 
@@ -107,6 +107,10 @@ export function HowMiningWorksContent() {
             <li className="flex gap-3">
               <span className="text-accent-cyan" aria-hidden>✓</span>
               <span><strong className="text-gray-300">Desktop app.</strong> The desktop app runs the same web app in a secure shell. Updates are delivered in-app; we don&apos;t run arbitrary code from the internet.</span>
+            </li>
+            <li className="flex gap-3">
+              <span className="text-accent-cyan" aria-hidden>✓</span>
+              <span><strong className="text-gray-300">Node downloads.</strong> When running nodes, we only fetch binaries from allowlisted hosts (e.g. GitHub releases). Optional SHA256 verification ensures integrity.</span>
             </li>
           </ul>
         </motion.section>

@@ -33,8 +33,15 @@ export async function GET(request: Request) {
       // D1 not available (local dev without wrangler); use static only
     }
 
-    const mainnet = [...staticMainnet, ...(dynamicMainnet as typeof staticMainnet)];
-    const devnet = [...staticDevnet, ...(dynamicDevnet as typeof staticDevnet)];
+    // Merge: dynamic (registered) overrides static for same id; no duplicates
+    const mergeById = (staticList: unknown[], dynamicList: unknown[]) => {
+      const byId = new Map<string, unknown>();
+      for (const n of staticList) (n as { id?: string }).id && byId.set((n as { id: string }).id, n);
+      for (const n of dynamicList) (n as { id?: string }).id && byId.set((n as { id: string }).id, n);
+      return Array.from(byId.values());
+    };
+    const mainnet = mergeById(staticMainnet, dynamicMainnet as typeof staticMainnet);
+    const devnet = mergeById(staticDevnet, dynamicDevnet as typeof staticDevnet);
 
     if (env === 'mainnet') {
       return NextResponse.json({ mainnet });
@@ -64,7 +71,11 @@ function rowToNetwork(row: Record<string, unknown>, environment: 'mainnet' | 'de
     website: row.website ?? undefined,
     rewardRate: row.reward_rate ?? undefined,
     minPayout: row.min_payout ?? undefined,
-    /** ISO date when listed (for discovery: newest first). Only on dynamically listed networks. */
+    nodeDownloadUrl: row.node_download_url ?? undefined,
+    nodeCommandTemplate: row.node_command_template ?? undefined,
+    nodeDiskGb: typeof row.node_disk_gb === 'number' ? row.node_disk_gb : undefined,
+    nodeRamMb: typeof row.node_ram_mb === 'number' ? row.node_ram_mb : undefined,
+    nodeBinarySha256: row.node_binary_sha256 ?? undefined,
     listedAt: typeof row.created_at === 'string' ? row.created_at : undefined,
   };
 }

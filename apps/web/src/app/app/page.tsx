@@ -9,10 +9,10 @@ import { useIsDesktop } from '@/hooks/useIsDesktop';
 import { DesktopNav } from '@/components/DesktopNav';
 
 const NAV_ITEMS = [
-  { href: '/dashboard', label: 'Mining dashboard', description: 'Choose a network and start mining', icon: '◇' },
-  { href: '/dashboard/sessions', label: 'Mining sessions', description: 'View and manage active mining sessions', icon: '◉' },
+  { href: '/dashboard', label: 'Dashboard', description: 'Mine or run nodes—choose a network and start', icon: '◇' },
+  { href: '/dashboard/sessions', label: 'Sessions', description: 'Active mining and node sessions', icon: '◉' },
   { href: '/networks', label: 'Networks', description: 'Browse mainnet and devnet networks', icon: '⛓' },
-  { href: '/pools', label: 'Pools', description: 'How mining pools work', icon: '◈' },
+  { href: '/how-mining-works', label: 'How it works', description: 'Mining, nodes, and pools explained', icon: '◈' },
   { href: '/dashboard/settings', label: 'Settings', description: 'Desktop app and preferences', icon: '⚙' },
 ];
 

@@ -1,22 +1,40 @@
 'use client';
 
+import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useAuth } from '@/contexts/AuthContext';
 
 /**
- * Minimal navigation for the desktop app: Home, Dashboard, Networks, Settings,
- * optional Admin, Open in browser, and Sign out. Used when running inside the Electron desktop client.
+ * Desktop app navigation: primary actions (Dashboard, Sessions, Networks, Settings),
+ * More dropdown (How mining works, Pools, Fees, Licenses), Admin, Sign out.
  */
 export function DesktopNav() {
   const { user, isAdmin, loading, logout } = useAuth();
   const router = useRouter();
+  const [moreOpen, setMoreOpen] = useState(false);
+  const moreRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMoreOpen(false);
+    }
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   async function handleSignOut() {
     await logout();
     router.push('/login');
     router.refresh();
   }
+
+  const moreItems = [
+    { href: '/how-mining-works', label: 'How mining works' },
+    { href: '/pools', label: 'Pools' },
+    { href: '/fees', label: 'Fees' },
+    { href: '/licenses', label: 'Licenses' },
+  ];
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 border-b border-white/5 bg-surface-950/95 backdrop-blur-md">
@@ -31,7 +49,7 @@ export function DesktopNav() {
             Desktop
           </span>
         </Link>
-        <div className="flex items-center gap-1 sm:gap-3">
+        <div className="flex items-center gap-1 sm:gap-2">
           <Link href="/dashboard" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
             Dashboard
           </Link>
@@ -41,21 +59,35 @@ export function DesktopNav() {
           <Link href="/networks" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
             Networks
           </Link>
-          <Link href="/how-mining-works" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
-            How mining works
-          </Link>
-          <Link href="/pools" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
-            Pools
-          </Link>
-          <Link href="/fees" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
-            Fees
-          </Link>
           <Link href="/dashboard/settings" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
             Settings
           </Link>
-          <Link href="/licenses" className="rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white">
-            Licenses
-          </Link>
+          <div className="relative" ref={moreRef}>
+            <button
+              type="button"
+              onClick={() => setMoreOpen((o) => !o)}
+              className="flex items-center gap-1 rounded px-2.5 py-1.5 text-sm text-gray-400 transition hover:bg-white/5 hover:text-white"
+              aria-expanded={moreOpen}
+              aria-haspopup="true"
+            >
+              More
+              <span className="text-xs" aria-hidden>▾</span>
+            </button>
+            {moreOpen && (
+              <div className="absolute right-0 top-full mt-1 w-48 rounded-xl border border-white/10 bg-surface-900 py-1 shadow-xl">
+                {moreItems.map((item) => (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMoreOpen(false)}
+                    className="block px-4 py-2 text-sm text-gray-300 transition hover:bg-white/5 hover:text-white"
+                  >
+                    {item.label}
+                  </Link>
+                ))}
+              </div>
+            )}
+          </div>
           {!loading && user && isAdmin && (
             <Link href="/dashboard/admin" className="rounded px-2.5 py-1.5 text-sm text-amber-400/90 transition hover:bg-amber-500/10 hover:text-amber-300">
               Admin

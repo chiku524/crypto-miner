@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { parseNetwork, FEE_CONFIG, getNetworkById } from '@vibeminer/shared';
+import { parseNetwork, FEE_CONFIG, getNetworkById, validateNodeConfig } from '@vibeminer/shared';
 import { getEnv, getSessionCookie, getUserIdFromSession } from '@/lib/auth-server';
 
 /**
@@ -58,15 +58,40 @@ export async function POST(request: Request) {
         { status: 400 }
       );
     }
-    if (!network.poolUrl?.trim()) {
+
+    // Node config: if provided, run security validation (URL allowlist, command sanitization)
+    let nodeConfig: { nodeDownloadUrl?: string; nodeCommandTemplate?: string; nodeDiskGb?: number; nodeRamMb?: number; nodeBinarySha256?: string } | null = null;
+    if (network.nodeDownloadUrl?.trim() && network.nodeCommandTemplate?.trim()) {
+      const nodeResult = validateNodeConfig({
+        nodeDownloadUrl: network.nodeDownloadUrl.trim(),
+        nodeCommandTemplate: network.nodeCommandTemplate.trim(),
+        nodeDiskGb: network.nodeDiskGb,
+        nodeRamMb: network.nodeRamMb,
+        nodeBinarySha256: network.nodeBinarySha256?.trim(),
+      });
+      if (!nodeResult.success) {
+        return NextResponse.json(
+          { error: `Node config validation failed: ${nodeResult.error}. Download URLs must be from allowed hosts (e.g. GitHub).` },
+          { status: 400 }
+        );
+      }
+      nodeConfig = nodeResult.data;
+    }
+
+    // Require either pool (mining) OR node config (PoS / full node)
+    const hasPool = !!(network.poolUrl?.trim() && network.poolPort != null && network.poolPort >= 1 && network.poolPort <= 65535);
+    const hasNode = !!nodeConfig;
+    if (!hasPool && !hasNode) {
       return NextResponse.json(
-        { error: 'Pool URL is required so miners can connect to your network.' },
+        {
+          error: 'Provide either mining pool (URL + port) for PoW networks, or node config (download URL + command) for PoS/node-only networks.',
+        },
         { status: 400 }
       );
     }
-    if (network.poolPort == null || network.poolPort < 1 || network.poolPort > 65535) {
+    if (network.poolUrl?.trim() && (!network.poolPort || network.poolPort < 1 || network.poolPort > 65535)) {
       return NextResponse.json(
-        { error: 'A valid pool port (1–65535) is required.' },
+        { error: 'When providing a pool URL, a valid pool port (1–65535) is required.' },
         { status: 400 }
       );
     }
@@ -112,8 +137,8 @@ export async function POST(request: Request) {
       `insert into network_listings (
         id, name, symbol, algorithm, environment, description, icon,
         pool_url, pool_port, website, reward_rate, min_payout, status,
-        listing_fee_paid
-      ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        listing_fee_paid, node_download_url, node_command_template, node_disk_gb, node_ram_mb, node_binary_sha256
+      ) values (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
     )
       .bind(
         id,
@@ -129,7 +154,12 @@ export async function POST(request: Request) {
         network.rewardRate ?? null,
         network.minPayout ?? null,
         network.status ?? 'live',
-        isMainnet ? 1 : 0
+        isMainnet ? 1 : 0,
+        nodeConfig?.nodeDownloadUrl ?? null,
+        nodeConfig?.nodeCommandTemplate ?? null,
+        nodeConfig?.nodeDiskGb ?? null,
+        nodeConfig?.nodeRamMb ?? null,
+        nodeConfig?.nodeBinarySha256 ?? null
       )
       .run();
 

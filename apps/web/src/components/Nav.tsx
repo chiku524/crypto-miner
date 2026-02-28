@@ -65,7 +65,7 @@ export function Nav() {
             Pools
           </Link>
           <Link href="/how-mining-works" className="text-sm font-medium text-gray-400 transition hover:text-white">
-            How mining works
+            How it works
           </Link>
           <Link href="/#how-it-works" className="text-sm font-medium text-gray-400 transition hover:text-white" title="Scrolls to section on home">
             How it works

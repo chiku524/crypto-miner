@@ -19,13 +19,13 @@ export function CTA() {
           className="rounded-3xl border border-accent-cyan/20 bg-gradient-to-b from-accent-cyan/10 to-transparent p-12"
         >
           <h2 className="font-display text-2xl font-bold sm:text-3xl">
-            Ready to mine without the terminal?
+            Mine and run nodes—no terminal
           </h2>
           <p className="mt-3 text-gray-400">
-            Start contributing hashrate in one click. Use the web app or download for Windows, Mac & Linux—same dashboard, auto-updates included.
+            One click to mine or run a full node. Web or desktop (Windows, Mac, Linux)—same dashboard, auto-updates included.
           </p>
           <p className="mt-2 text-sm text-gray-500">
-            <Link href="/how-mining-works" className="text-accent-cyan hover:underline">How one-click mining works</Link> →
+            <Link href="/how-mining-works" className="text-accent-cyan hover:underline">How mining &amp; nodes work</Link> →
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-4">
             <Link

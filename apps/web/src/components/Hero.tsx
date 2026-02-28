@@ -48,8 +48,7 @@ export function Hero() {
           transition={tDelay(0.5)}
           className="mt-6 text-lg text-gray-400"
         >
-          No terminal, no config files. Choose a blockchain, click start, and contribute hashrate
-          with a modern, seamless experience—on desktop or web.
+          No terminal, no config files. Mine, run nodes, and host networks—one click. Desktop or web.
         </motion.p>
         <motion.div
           initial={reduced ? false : { opacity: 0, y: 12 }}
@@ -79,7 +78,7 @@ export function Hero() {
         transition={reduced ? reducedTransition : { delay: 1, duration: 0.5 }}
         className="mt-16 flex flex-wrap justify-center gap-x-8 gap-y-2 text-sm text-gray-500"
       >
-        <span>✓ No terminal</span>
+        <span>✓ Mine & run nodes</span>
         <span>✓ One-click start</span>
         <span>✓ Web & desktop</span>
         <span>✓ Windows · macOS · Linux</span>

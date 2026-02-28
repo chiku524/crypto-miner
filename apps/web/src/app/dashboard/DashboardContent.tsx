@@ -11,6 +11,11 @@ import {
   type BlockchainNetwork,
   type NetworkEnvironment,
   INCENTIVIZED_TESTNET_IDS,
+  getResourceTier,
+  RESOURCE_TIER_LABELS,
+  isNetworkMineable,
+  hasNodeConfig,
+  type ResourceTier,
 } from '@vibeminer/shared';
 import { MiningPanel } from '@/components/dashboard/MiningPanel';
 import { useMining } from '@/contexts/MiningContext';
@@ -40,6 +45,13 @@ const SORT_OPTIONS: { value: 'newest' | 'name-asc' | 'name-desc'; label: string 
   { value: 'name-desc', label: 'Name Z–A' },
 ];
 
+const RESOURCE_FILTER_OPTIONS: { value: '' | ResourceTier; label: string }[] = [
+  { value: '', label: 'All resources' },
+  { value: 'light', label: 'Light (<10 GB)' },
+  { value: 'standard', label: 'Standard (10–100 GB)' },
+  { value: 'heavy', label: 'Heavy (100+ GB)' },
+];
+
 function useStableEnv(searchParams: ReturnType<typeof useSearchParams>): NetworkEnvironment {
   return useMemo(() => {
     const env = searchParams.get('env');
@@ -48,16 +60,29 @@ function useStableEnv(searchParams: ReturnType<typeof useSearchParams>): Network
   }, [searchParams]);
 }
 
-function filterNetworks(networks: BlockchainNetwork[], query: string): BlockchainNetwork[] {
-  if (!query.trim()) return networks;
-  const q = query.toLowerCase();
-  return networks.filter(
-    (n) =>
-      n.name.toLowerCase().includes(q) ||
-      n.symbol.toLowerCase().includes(q) ||
-      n.algorithm.toLowerCase().includes(q) ||
-      (n.description && n.description.toLowerCase().includes(q))
-  );
+function filterNetworks(
+  networks: BlockchainNetwork[],
+  query: string,
+  resourceFilter?: '' | ResourceTier
+): BlockchainNetwork[] {
+  let result = networks;
+  if (query.trim()) {
+    const q = query.toLowerCase();
+    result = result.filter(
+      (n) =>
+        n.name.toLowerCase().includes(q) ||
+        n.symbol.toLowerCase().includes(q) ||
+        n.algorithm.toLowerCase().includes(q) ||
+        (n.description && n.description.toLowerCase().includes(q))
+    );
+  }
+  if (resourceFilter) {
+    result = result.filter((n) => {
+      const tier = getResourceTier(n.nodeDiskGb, n.nodeRamMb);
+      return tier === resourceFilter;
+    });
+  }
+  return result;
 }
 
 function sortNetworks(
@@ -136,6 +161,7 @@ export function DashboardContent() {
   const [searchQuery, setSearchQuery] = useState('');
   const debouncedSearch = useDebouncedValue(searchQuery, 200);
   const [sortBy, setSortBy] = useState<'newest' | 'name-asc' | 'name-desc'>('newest');
+  const [resourceFilter, setResourceFilter] = useState<'' | ResourceTier>('');
   const [fetchedMainnet, setFetchedMainnet] = useState<NetworkWithMeta[] | null>(null);
   const [fetchedDevnet, setFetchedDevnet] = useState<NetworkWithMeta[] | null>(null);
   const [networksFetchError, setNetworksFetchError] = useState(false);
@@ -189,8 +215,8 @@ export function DashboardContent() {
   );
 
   const filteredNetworks = useMemo(
-    () => filterNetworks(sortedNetworks, debouncedSearch),
-    [sortedNetworks, debouncedSearch]
+    () => filterNetworks(sortedNetworks, debouncedSearch, resourceFilter),
+    [sortedNetworks, debouncedSearch, resourceFilter]
   );
 
   const preselected = useMemo(() => {
@@ -296,7 +322,7 @@ export function DashboardContent() {
           </header>
         )}
         <div className={`mx-auto max-w-6xl px-4 py-8 sm:px-6 ${isDesktop ? 'pt-14' : ''}`}>
-          <Breadcrumbs crumbs={[{ label: 'Home', href: isDesktop ? '/app' : '/' }, { label: 'Miner dashboard' }]} />
+          <Breadcrumbs crumbs={[{ label: 'Home', href: isDesktop ? '/app' : '/' }, { label: 'Dashboard' }]} />
           <div className="mb-8 mt-4 h-16 w-64 rounded-lg bg-white/5 animate-pulse" aria-hidden />
           <div className="grid gap-8 lg:grid-cols-3">
             <div className="lg:col-span-1 space-y-4">
@@ -329,6 +355,9 @@ export function DashboardContent() {
               </span>
             </Link>
             <div className="flex items-center gap-4">
+              <Link href="/dashboard/sessions" className="text-sm text-gray-400 transition hover:text-white">
+                Sessions
+              </Link>
               <Link href="/networks" className="text-sm text-gray-400 transition hover:text-white">
                 Networks
               </Link>
@@ -336,7 +365,7 @@ export function DashboardContent() {
                 Settings
               </Link>
               <Link href="/" className="text-sm text-gray-400 transition hover:text-white">
-                ← Back home
+                ← Home
               </Link>
             </div>
           </div>
@@ -344,18 +373,18 @@ export function DashboardContent() {
       )}
 
       <div className={`mx-auto max-w-6xl px-4 sm:px-6 ${isDesktop ? 'pt-14 pb-8' : 'py-8'}`}>
-        <Breadcrumbs crumbs={[{ label: 'Home', href: isDesktop ? '/app' : '/' }, { label: 'Miner dashboard' }]} />
+        <Breadcrumbs crumbs={[{ label: 'Home', href: isDesktop ? '/app' : '/' }, { label: 'Dashboard' }]} />
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
           className="mb-8 mt-4"
         >
-          <h1 className="font-display text-2xl font-bold sm:text-3xl">Mining dashboard</h1>
+          <h1 className="font-display text-2xl font-bold sm:text-3xl">Dashboard</h1>
           <p className="mt-1 text-gray-400">
-            Choose Mainnet or Devnet, then select a network. Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">S</kbd> to quick-start first network, <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">Esc</kbd> to stop.
+            Mine PoW networks or run PoS nodes. Choose Mainnet or Devnet, then select a network. <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">S</kbd> quick-starts, <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">Esc</kbd> stops.
           </p>
           <p className="mt-2 text-sm text-gray-500">
-            <Link href="/how-mining-works" className="text-accent-cyan hover:underline">How one-click mining works</Link> →
+            <Link href="/how-mining-works" className="text-accent-cyan hover:underline">How mining &amp; nodes work</Link> →
           </p>
         </motion.div>
 
@@ -405,21 +434,39 @@ export function DashboardContent() {
                 </button>
               </div>
             )}
-            <div className="mb-4 flex items-center justify-between gap-2">
-              <label htmlFor="sort-networks" className="text-xs text-gray-500">Sort</label>
-              <select
-                id="sort-networks"
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'newest' | 'name-asc' | 'name-desc')}
-                className="rounded-lg border border-white/10 bg-surface-850 px-3 py-1.5 text-sm text-white focus:border-accent-cyan/50 focus:outline-none"
-                aria-label="Sort networks"
-              >
-                {SORT_OPTIONS.map((opt) => (
-                  <option key={opt.value} value={opt.value}>
-                    {opt.label}
-                  </option>
-                ))}
-              </select>
+            <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
+                <label htmlFor="sort-networks" className="text-xs text-gray-500">Sort</label>
+                <select
+                  id="sort-networks"
+                  value={sortBy}
+                  onChange={(e) => setSortBy(e.target.value as 'newest' | 'name-asc' | 'name-desc')}
+                  className="rounded-lg border border-white/10 bg-surface-850 px-3 py-1.5 text-sm text-white focus:border-accent-cyan/50 focus:outline-none"
+                  aria-label="Sort networks"
+                >
+                  {SORT_OPTIONS.map((opt) => (
+                    <option key={opt.value} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div className="flex items-center gap-2">
+                <label htmlFor="resource-filter" className="text-xs text-gray-500">Resources</label>
+                <select
+                  id="resource-filter"
+                  value={resourceFilter}
+                  onChange={(e) => setResourceFilter((e.target.value || '') as '' | ResourceTier)}
+                  className="rounded-lg border border-white/10 bg-surface-850 px-3 py-1.5 text-sm text-white focus:border-accent-cyan/50 focus:outline-none"
+                  aria-label="Filter by resource tier"
+                >
+                  {RESOURCE_FILTER_OPTIONS.map((opt) => (
+                    <option key={opt.value || 'all'} value={opt.value}>
+                      {opt.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
             <h2 className="mb-4 font-display text-sm font-semibold uppercase tracking-wider text-gray-500">
               {selectedEnv === 'mainnet' ? 'Mainnet' : 'Devnet'} networks
@@ -438,8 +485,11 @@ export function DashboardContent() {
             >
               {filteredNetworks.map((network) => {
                 const isLive = network.status === 'live';
+                const mineable = isNetworkMineable(network);
+                const canRunNode = hasNodeConfig(network);
                 const isActive = isMining(network.id, network.environment);
                 const isStarting = startingId === network.id;
+                const canStartMining = isLive && mineable && !isActive && !isStarting;
                 const nWithMeta = network as NetworkWithMeta;
                 const isNewlyListed =
                   nWithMeta.listedAt &&
@@ -456,19 +506,25 @@ export function DashboardContent() {
                   >
                     <div className="flex items-stretch gap-1 rounded-xl border border-transparent">
                       <motion.button
-                        onClick={() => handleStart(network)}
-                        disabled={!isLive || isActive || !!isStarting}
-                        whileHover={isLive && !isActive && !isStarting ? { scale: 1.01 } : undefined}
-                        whileTap={isLive && !isActive && !isStarting ? { scale: 0.99 } : undefined}
+                        onClick={() => {
+                          if (canStartMining) handleStart(network);
+                          else if (isLive && canRunNode) setModalNetwork(network);
+                        }}
+                        disabled={!isLive || (!canStartMining && !canRunNode)}
+                        whileHover={(canStartMining || (isLive && canRunNode)) ? { scale: 1.01 } : undefined}
+                        whileTap={(canStartMining || (isLive && canRunNode)) ? { scale: 0.99 } : undefined}
                         transition={{ duration: 0.15 }}
+                        title={!mineable && canRunNode ? 'Run node' : undefined}
                         className={`flex flex-1 items-center gap-3 rounded-l-xl border px-4 py-3 text-left transition-colors ${
                           isActive
                             ? 'border-accent-cyan/50 bg-accent-cyan/10'
                             : isStarting
                               ? 'border-accent-cyan/30 bg-accent-cyan/5'
-                              : isLive
+                              : canStartMining || (isLive && canRunNode)
                                 ? 'border-white/10 hover:border-white/20 hover:bg-white/5'
-                                : 'cursor-not-allowed border-white/5 bg-white/5 opacity-60'
+                                : isLive
+                                  ? 'border-white/10 hover:border-white/20 hover:bg-white/5'
+                                  : 'cursor-not-allowed border-white/5 bg-white/5 opacity-60'
                         }`}
                       >
                         <span className="text-xl" aria-hidden="true">{network.icon}</span>
@@ -490,6 +546,11 @@ export function DashboardContent() {
                               </p>
                               <p className="text-xs text-gray-500">
                                 {network.symbol} · {network.algorithm}
+                                {(network.nodeDiskGb || network.nodeRamMb) && (
+                                  <span className="ml-1.5 rounded bg-sky-500/20 px-1 py-0.5 text-sky-300">
+                                    {RESOURCE_TIER_LABELS[getResourceTier(network.nodeDiskGb, network.nodeRamMb)]}
+                                  </span>
+                                )}
                               </p>
                             </>
                           )}
@@ -569,7 +630,7 @@ export function DashboardContent() {
                   <span className="text-5xl opacity-50" aria-hidden="true">◇</span>
                   <p className="mt-4 font-medium text-gray-400">No active mining session</p>
                   <p className="mt-2 max-w-sm text-sm text-gray-500">
-                    Select Mainnet or Devnet above, then pick a network to start mining. You can mine multiple networks at once. Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">S</kbd> to quick-start the first available network.
+                    Select Mainnet or Devnet, then pick a network to mine or run a node. Multiple sessions supported. Press <kbd className="rounded bg-white/10 px-1.5 py-0.5 font-mono text-xs">S</kbd> to quick-start.
                   </p>
                   <div className="mt-6 flex flex-wrap justify-center gap-3">
                     {selectedEnv === 'devnet' && (() => {

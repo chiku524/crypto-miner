@@ -40,6 +40,10 @@ declare global {
       stopRealMining?: (networkId: string, environment: string) => void;
       getRealMiningStats?: (networkId: string, environment: string) => Promise<{ hashrate: number; shares: number } | null>;
       isRealMining?: (networkId: string, environment: string) => Promise<boolean>;
+      startNode?: (opts: { network: Record<string, unknown> }) => Promise<{ ok: boolean; error?: string }>;
+      stopNode?: (networkId: string, environment: string) => void;
+      getNodeStatus?: (networkId: string, environment: string) => Promise<{ status?: string; isActive?: boolean } | null>;
+      isNodeRunning?: (networkId: string, environment: string) => Promise<boolean>;
     };
   }
 }

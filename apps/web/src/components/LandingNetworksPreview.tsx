@@ -42,7 +42,7 @@ export function LandingNetworksPreview() {
           Networks &amp; pools
         </h2>
         <p className="mt-2 text-gray-400 text-center max-w-2xl mx-auto">
-          Mine on mainnet or devnet. We connect you to pools—no config. Browse all networks or learn how pools work.
+          Mine PoW networks or run PoS nodes—mainnet and devnet. One click, no config. Browse networks or learn how pools work.
         </p>
         {boing && (
           <div className="mt-8 mx-auto max-w-xl rounded-2xl border border-amber-500/20 bg-amber-500/5 p-4 text-center">

@@ -35,4 +35,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('miner-download-progress', handler);
     return () => ipcRenderer.removeListener('miner-download-progress', handler);
   },
+  // Node running
+  startNode: (opts) => ipcRenderer.invoke('startNode', opts),
+  stopNode: (networkId, environment) => ipcRenderer.invoke('stopNode', networkId, environment),
+  getNodeStatus: (networkId, environment) => ipcRenderer.invoke('getNodeStatus', networkId, environment),
+  isNodeRunning: (networkId, environment) => ipcRenderer.invoke('isNodeRunning', networkId, environment),
+  onNodeDownloadProgress: (callback) => {
+    const handler = (_, payload) => callback(payload);
+    ipcRenderer.on('node-download-progress', handler);
+    return () => ipcRenderer.removeListener('node-download-progress', handler);
+  },
 });

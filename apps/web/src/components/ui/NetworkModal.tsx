@@ -1,10 +1,11 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import Link from 'next/link';
 import type { BlockchainNetwork } from '@vibeminer/shared';
-import { INCENTIVIZED_TESTNET_IDS } from '@vibeminer/shared';
+import { INCENTIVIZED_TESTNET_IDS, getResourceTier, RESOURCE_TIER_LABELS, RESOURCE_TIER_DESCRIPTIONS, hasNodeConfig } from '@vibeminer/shared';
+import { useIsDesktop } from '@/hooks/useIsDesktop';
 
 interface NetworkModalProps {
   network: BlockchainNetwork | null;
@@ -22,6 +23,28 @@ export function NetworkModal({ network, onClose }: NetworkModalProps) {
   const reduced = useReducedMotion() ?? false;
   const closeButtonRef = useRef<HTMLButtonElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
+  const isDesktop = useIsDesktop();
+  const [nodeRunning, setNodeRunning] = useState(false);
+  const [nodeStarting, setNodeStarting] = useState(false);
+  const [nodeStatus, setNodeStatus] = useState<string | null>(null);
+
+  const tier = getResourceTier(network?.nodeDiskGb, network?.nodeRamMb);
+  const canRunNode = network && hasNodeConfig(network) && isDesktop;
+
+  useEffect(() => {
+    if (!network || !isDesktop || !window.electronAPI?.isNodeRunning) return;
+    window.electronAPI.isNodeRunning(network.id, network.environment ?? 'mainnet').then(setNodeRunning);
+  }, [network, isDesktop]);
+
+  useEffect(() => {
+    if (!network || !isDesktop || !nodeRunning || !window.electronAPI?.getNodeStatus) return;
+    const interval = setInterval(() => {
+      window.electronAPI?.getNodeStatus?.(network.id, network.environment ?? 'mainnet').then((s) => {
+        if (s) setNodeStatus(s.status ?? null);
+      });
+    }, 3000);
+    return () => clearInterval(interval);
+  }, [network, isDesktop, nodeRunning]);
 
   useEffect(() => {
     if (!network) return;
@@ -110,6 +133,11 @@ export function NetworkModal({ network, onClose }: NetworkModalProps) {
                     Incentivized testnet
                   </span>
                 )}
+                {(network.nodeDiskGb || network.nodeRamMb) && (
+                  <span className="ml-2 inline-block rounded-full bg-sky-500/20 px-2.5 py-0.5 text-xs text-sky-300" title={RESOURCE_TIER_DESCRIPTIONS[tier]}>
+                    {RESOURCE_TIER_LABELS[tier]} node
+                  </span>
+                )}
               </div>
             </div>
             <button
@@ -142,6 +170,17 @@ export function NetworkModal({ network, onClose }: NetworkModalProps) {
                 <p className="font-mono text-white">{network.minPayout}</p>
               </div>
             )}
+            {(network.nodeDiskGb || network.nodeRamMb) && (
+              <div>
+                <span className="text-gray-500">Node resources</span>
+                <p className="font-mono text-white">
+                  {network.nodeDiskGb ? `${network.nodeDiskGb} GB disk` : ''}
+                  {network.nodeDiskGb && network.nodeRamMb ? ' · ' : ''}
+                  {network.nodeRamMb ? `${Math.round(network.nodeRamMb / 1024)} GB RAM` : ''}
+                </p>
+                <p className="mt-0.5 text-xs text-gray-500">{RESOURCE_TIER_DESCRIPTIONS[tier]}</p>
+              </div>
+            )}
           {network.website && (
               <a
                 href={network.website}
@@ -154,13 +193,61 @@ export function NetworkModal({ network, onClose }: NetworkModalProps) {
             )}
           </div>
           {network.status === 'live' && (
-            <div className="mt-4 pt-4 border-t border-white/5">
+            <div className="mt-4 flex flex-wrap items-center gap-3 pt-4 border-t border-white/5">
               <Link
                 href={`/dashboard?env=${network.environment}&network=${network.id}`}
                 className="inline-block rounded-xl bg-accent-cyan/20 px-4 py-2 text-sm font-medium text-accent-cyan transition hover:bg-accent-cyan/30"
               >
                 Start mining →
               </Link>
+              {canRunNode && (
+                <>
+                  {nodeRunning ? (
+                    <div className="flex items-center gap-2">
+                      <span className="h-2 w-2 rounded-full bg-accent-emerald animate-pulse" />
+                      <span className="text-sm text-accent-emerald">Node running</span>
+                      {nodeStatus && <span className="text-xs text-gray-500">({nodeStatus})</span>}
+                      <button
+                        type="button"
+                        onClick={async () => {
+                          await window.electronAPI?.stopNode?.(network.id, network.environment ?? 'mainnet');
+                          setNodeRunning(false);
+                        }}
+                        className="rounded-lg border border-red-500/30 px-3 py-1 text-xs font-medium text-red-400 hover:bg-red-500/10"
+                      >
+                        Stop node
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      disabled={nodeStarting}
+                      onClick={async () => {
+                        if (!window.electronAPI?.startNode) return;
+                        setNodeStarting(true);
+                        try {
+                          const result = await window.electronAPI.startNode({
+                            network: {
+                              id: network.id,
+                              environment: network.environment ?? 'mainnet',
+                              nodeDownloadUrl: network.nodeDownloadUrl,
+                              nodeCommandTemplate: network.nodeCommandTemplate,
+                              nodeBinarySha256: network.nodeBinarySha256,
+                            },
+                          });
+                          if (result.ok) setNodeRunning(true);
+                          else alert(result.error);
+                        } finally {
+                          setNodeStarting(false);
+                        }
+                      }}
+                      className="rounded-xl border border-sky-500/40 bg-sky-500/10 px-4 py-2 text-sm font-medium text-sky-300 transition hover:bg-sky-500/20 disabled:opacity-50"
+                    >
+                      {nodeStarting ? 'Starting…' : 'Run node'}
+                    </button>
+                  )}
+                </>
+              )}
             </div>
           )}
         </motion.div>

@@ -1,6 +1,6 @@
 {
   "name": "vibeminer-desktop",
-  "version": "1.0.42",
+  "version": "1.0.43",
   "private": true,
   "description": "VibeMiner desktop app — mine for networks that need you. No terminal required.",
   "author": "nico.builds",
@@ -37,6 +37,7 @@
       "main.js",
       "preload.js",
       "mining-service.js",
+      "node-service.js",
       "build"
     ],
     "asarUnpack": [

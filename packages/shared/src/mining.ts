@@ -49,5 +49,6 @@ export const ALGORITHM_OPTIONS = [
   { value: 'SHA256', label: 'SHA256 (Bitcoin-style)', miner: 'varies' },
   { value: 'Scrypt', label: 'Scrypt', miner: 'varies' },
   { value: 'Ethash', label: 'Ethash', miner: 'varies' },
+  { value: 'PoS', label: 'PoS (Proof of Stake, no mining)', miner: 'none' },
   { value: 'Other', label: 'Other', miner: 'varies' },
 ] as const;
